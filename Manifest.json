@@ -1,0 +1,20 @@
+{
+    "manifest_version": 2,
+    "name": "thEvaluator",
+    "version": "0.1",
+    "description": "Chrome extension to start thEvaluator usability tests",
+    "browser_action":   {
+        "default_icon": "img/icon.png",
+        "default_popup": "index.html"
+    },
+    "background": {
+        "page": "background.html"
+    },
+    "web_accessible_resources": ["js/inject.js"],
+    "permissions": ["tabs", "cookies", "*://*/"],
+    "content_scripts": [{
+        "js": ["js/contentscript.js"],
+        "matches": ["<all_urls>"]
+    }],
+    "content_security_policy": "script-src 'self' http://localhost; object-src 'self'"
+}
