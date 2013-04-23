@@ -1,0 +1,18 @@
+{
+  "name": "thEvaluator-extension",
+  "description": "chrome extension of thEvaluator project",
+  "version": "0.1",
+  "homepage": "https://github.com/christian-bromann/thEvaluator-extension",
+  "author": {
+    "name": "Christian Bromann",
+    "email": "contact@christian-bromann.com",
+    "url": "http://www.christian-bromann.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:christian-bromann/thEvaluator-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/christian-bromann/thEvaluator-extension/issues"
+  }
+}
