@@ -19,19 +19,18 @@ sendMousePosition = function(request) {
 
 // connect to server
 startSocketConnection = function(request) {
-    socket      = window.io.connect('http://localhost');
+    socket      = window.io.connect('http://localhost:9001');
     testCase.id = request.id;
 
     socket.on('connect', function () {
         socket.emit('startTestCase', testCase.id, function (data) {
             testCase = data;
-            
+
             chrome.tabs.getSelected(null, function(tab) {
                 chrome.tabs.sendMessage(tab.id, {action: "openTestSite", url: testCase.url});
             });
         });
     });
-    
 };
 
 // register actions
