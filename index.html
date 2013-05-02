@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <link rel="stylesheet" type="text/css" href="css/main.css" />
-</head>
-<body>
 
+<meta charset="utf-8">
+<title>thEvaluator Chrome App</title>
+<link rel="stylesheet" type="text/css" href="css/main.css" />
+
+<header>
     <h1>thEvaluator</h1>
+</header>
 
-    <div id="content">
-        Hello World!
-    </div>
+<section>
+    <h2>Welcome!</h2>
+    <p>
+        Please insert the ID of the testcase you'ld like to participate.<br>
+        <br>
+        After pressing the <i>Start</i> button a new website gets openened.<br>
+        <br>
+        Follow the given instructions and solve the task to finish successfully.
+    </p>
 
-    <button id="addTextToPage">push me!</button>
-    <br>
-    <button id="screenshot">take a screenshot</button>
-    <br>
-    <button id="gmailLogin">login to gmail</button><br>
-    <br>
-    <br>
-    <input type="text" name="testcase">
-    <button id="startTestCase">start test case</button>
+    <input type="text" name="testcase" placeholder="testcase ID">
+    <button id="startTestCase">start</button>
+</section>
 
-    <script src="js/libs/jquery-1.8.0.js"></script>
-    <script src="js/extension.js"></script>
-    
-</body>
-</html>
+
+
+<script src="js/libs/jquery-1.8.0.js"></script>
+<script src="js/extension.js"></script>

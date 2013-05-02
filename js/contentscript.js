@@ -27,16 +27,6 @@ redirectTo = function(url) {
     script.innerHTML = 'window.location.href = \'' + url + '\'';
     document.body.appendChild(script);
 },
-inject = function() {
-    console.log('[contentscript.js] action: inject()');
-    var text = document.createElement('p');
-    text.innerHTML = "Hi! I'm injected text from thEvaluator extension.";
-    document.body.appendChild(text);
-},
-login = function() {
-    console.log('[contentscript.js] action: login()');
-    redirectTo('http://mail.google.com/');
-},
 start = function(request) {
     console.log('[contentscript.js] action: start()');
     isTesting  = true;
@@ -50,10 +40,6 @@ openTestSite = function(request) {
 
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
     switch(request.action) {
-        case 'inject': inject();
-        break;
-        case 'login': login();
-        break;
         case 'start': start(request);
         break;
         case 'openTestSite': openTestSite(request);
@@ -63,4 +49,4 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
     }
 });
 
-document.onmousemove = sendCoordToExtension;
+document.onclick = sendCoordToExtension;

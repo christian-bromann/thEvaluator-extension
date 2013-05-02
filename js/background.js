@@ -24,6 +24,9 @@ startSocketConnection = function(request) {
 
     socket.on('connect', function () {
         socket.emit('startTestCase', testCase.id, function (data) {
+
+            console.info('received testcase: ',data);
+
             testCase = data;
 
             chrome.tabs.getSelected(null, function(tab) {
