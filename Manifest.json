@@ -13,7 +13,7 @@
     "web_accessible_resources": ["js/inject.js"],
     "permissions": ["tabs", "cookies", "*://*/"],
     "content_scripts": [{
-        "js": ["js/contentscript.js"],
+        "js": ["js/thEvaluatorInjected.js","js/injected.js"],
         "matches": ["<all_urls>"]
     }],
     "content_security_policy": "script-src 'self' http://localhost; object-src 'self'"

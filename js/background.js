@@ -4,17 +4,17 @@
  */
 
 var socket   = null,
-    testCase = {},
+    testcase = null,
 
 // send mouse position to server via socketIO
 sendMousePosition = function(request) {
 
-    if(!testCase.id) {
+    if(!testcase) {
         return;
     }
 
     console.log('got coords ', request);
-    socket.emit('mousePosition', {id: testCase.id, x: request.x, y: request.y });
+    socket.emit('mousePosition', {id: testcase._id, x: request.x, y: request.y });
 },
 
 getTestcase = function(request) {
@@ -26,6 +26,7 @@ getTestcase = function(request) {
     socket.emit('getTestcase', request.testCaseID, function (data) {
 
         console.info('received testcase: ',data);
+        testcase = data;
 
         chrome.tabs.getSelected(null, function(tab) {
             chrome.tabs.sendMessage(tab.id, {action: 'startTestCase', testcase: data});
@@ -57,6 +58,6 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
     if (changeInfo.status === 'complete') {
-        chrome.tabs.sendMessage(tabId, {action: 'registerEventListener'});
+        chrome.tabs.sendMessage(tabId, {action: 'registerEventListener', testcase: testcase});
     }
 });
