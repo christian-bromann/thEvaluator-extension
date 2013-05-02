@@ -6,17 +6,14 @@
 var i = 0,
     isTesting = false,
     testCaseID = '',
+    testcase = null,
 
 sendCoordToExtension = function(event) {
 
-    if(testCaseID === '') {
+    if(testcase) {
         return;
     }
 
-    ++i;
-    if(i % 10 !== 0) {
-        return;
-    }
     e = event || window.event;
 
     console.log('send coords: ',{ id: testCaseID, x: e.pageX, y: e.pageY });
@@ -24,29 +21,30 @@ sendCoordToExtension = function(event) {
 },
 redirectTo = function(url) {
     var script = document.createElement('script');
-    script.innerHTML = 'window.location.href = \'' + url + '\'';
+    script.innerHTML = 'window.location.href = \'' + testcase.url + '\'';
     document.body.appendChild(script);
 },
-start = function(request) {
-    console.log('[contentscript.js] action: start()');
-    isTesting  = true;
-    testCaseID = request.testCaseID;
-    chrome.extension.sendMessage({ action: 'startSocketConnection', id: testCaseID });
+startTestCase = function(request) {
+    console.log('[contentscript.js] action: startTestCase()');
+    testcase = request.testcase;
+    redirectTo();
 },
-openTestSite = function(request) {
-    console.log('[contentscript.js] action: openTestSite()');
-    redirectTo(request.url + '?starthEvaluator');
+startTestrun = function(e) {
+    console.log('[contentscript.js] website %s opened',document.URL);
+},
+registerEventListener = function() {
+    console.log('register event listener for %s', document.URL);
+    document.body.addEventListener('click', sendCoordToExtension);
+    document.body.addEventListener('load', startTestrun);
 };
 
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
     switch(request.action) {
-        case 'start': start(request);
+        case 'startTestCase': startTestCase(request);
         break;
-        case 'openTestSite': openTestSite(request);
+        case 'registerEventListener': registerEventListener();
         break;
         default:
             console.error('[contentscript.js] couldn\'t find action: \'%s\'',request.action);
     }
 });
-
-document.onclick = sendCoordToExtension;

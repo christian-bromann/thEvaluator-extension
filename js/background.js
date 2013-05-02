@@ -17,33 +17,46 @@ sendMousePosition = function(request) {
     socket.emit('mousePosition', {id: testCase.id, x: request.x, y: request.y });
 },
 
+getTestcase = function(request) {
+    if(!socket) {
+        startSocketConnection(request);
+        return;
+    }
+
+    socket.emit('getTestcase', request.testCaseID, function (data) {
+
+        console.info('received testcase: ',data);
+
+        chrome.tabs.getSelected(null, function(tab) {
+            chrome.tabs.sendMessage(tab.id, {action: 'startTestCase', testcase: data});
+        });
+    });
+},
+
 // connect to server
 startSocketConnection = function(request) {
     socket      = window.io.connect('http://localhost:9001');
     testCase.id = request.id;
 
     socket.on('connect', function () {
-        socket.emit('startTestCase', testCase.id, function (data) {
-
-            console.info('received testcase: ',data);
-
-            testCase = data;
-
-            chrome.tabs.getSelected(null, function(tab) {
-                chrome.tabs.sendMessage(tab.id, {action: "openTestSite", url: testCase.url});
-            });
-        });
+        getTestcase(request);
     });
 };
 
 // register actions
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
     switch(request.action) {
-        case 'sendMousePosition': sendMousePosition(request);
+        case 'getTestcase': getTestcase(request);
         break;
-        case 'startSocketConnection': startSocketConnection(request);
+        case 'sendMousePosition': sendMousePosition(request);
         break;
         default:
             console.warn('[background.js] no action \'%s\' found!',request.action);
+    }
+});
+
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
+    if (changeInfo.status === 'complete') {
+        chrome.tabs.sendMessage(tabId, {action: 'registerEventListener'});
     }
 });

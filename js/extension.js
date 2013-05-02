@@ -6,8 +6,6 @@
 (function() {
     $('button#startTestCase').click(function() {
         console.log('start test case');
-        chrome.tabs.getSelected(null, function(tab) {
-            chrome.tabs.sendMessage(tab.id, {action: "start", testCaseID: $($('input')[0]).val()});
-        });
+        chrome.extension.sendMessage({action: 'getTestcase', testCaseID: $($('input')[0]).val()});
     });
 })();
