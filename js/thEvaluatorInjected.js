@@ -5,9 +5,10 @@
 
 var thEvaluatorInjected = function() {
 
-    this.logStyleLabel =  'color:#0088cc;font-weight:bold;';
-    this.logStyle = 'color:#999999';
-    this.testcase = null;
+    this.logStyleLabel = 'color:#0088cc;font-weight:bold;';
+    this.logStyle      = 'color:#999999';
+    this.testcase      = null;
+    this.currentTask   = 0;
 
 };
 
@@ -53,18 +54,24 @@ thEvaluatorInjected.prototype.printWelcomeMessage = function() {
     '    <header><h1>thEvaluator</h1></header>'+
     '    <section>'+
     '      <p><b>Testcase name:</b> '+this.testcase.name+'</p>'+
-    '      <p><b>Task #1:</b> ' + this.testcase.tasks[0].description + '</p>'+
+    '      <p><b>Task #1:</b> ' + this.currentTask.description + '</p>'+
     '      <button class="start">Start</button>'+
     '    </section>'+
     '  </div>'+
     '</div>';
 
-    document.body.appendChild(el);
+    // document.body.appendChild(el);
 
 };
 
+thEvaluatorInjected.prototype.hitTargetElem = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    alert('you MADE IT');
+};
+
 // thEvaluatorInjected.prototype.isPopupOpen = function() {
-    
+
 // }
 
 /**
@@ -79,11 +86,19 @@ thEvaluatorInjected.prototype.registerEventListener = function(request) {
 
     if(!request.testcase) return;
 
-    this.log('current testcase: '+request.testcase.name);
     this.testcase = request.testcase;
+    this.log('current testcase: '+this.testcase.name);
+    this.currentTask = this.testcase.tasks[request.currentTask];
+    this.log('current task ('+request.currentTask+'/'+this.testcase.tasks.length+'): '+this.currentTask.description);
 
     this.log('register event listener for ' + document.URL);
     document.body.addEventListener('click', this.sendCoordToExtension.bind(this));
+
+    this.targetElem = document.querySelectorAll(this.currentTask.targetElem);
+    for(var i = 0; i < this.targetElem.length; ++i) {
+        this.targetElem[i].addEventListener(this.currentTask.targetAction, this.hitTargetElem.bind(this));
+    }
+    this.log('found '+this.targetElem.length+' target elements (' + this.currentTask.targetElem + ') on this page');
 
     this.printWelcomeMessage();
 };

@@ -5,6 +5,7 @@
 
 var socket   = null,
     testcase = null,
+    task     = 0,
 
 // send mouse position to server via socketIO
 sendMousePosition = function(request) {
@@ -42,6 +43,10 @@ startSocketConnection = function(request) {
     socket.on('connect', function () {
         getTestcase(request);
     });
+},
+
+finishedTask = function() {
+    ++task;
 };
 
 // register actions
@@ -51,6 +56,8 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
         break;
         case 'sendMousePosition': sendMousePosition(request);
         break;
+        case 'finishedTask': finishedTask();
+        break;
         default:
             console.warn('[background.js] no action \'%s\' found!',request.action);
     }
@@ -58,6 +65,6 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
     if (changeInfo.status === 'complete') {
-        chrome.tabs.sendMessage(tabId, {action: 'registerEventListener', testcase: testcase});
+        chrome.tabs.sendMessage(tabId, {action: 'registerEventListener', testcase: testcase, currentTask: task});
     }
 });
