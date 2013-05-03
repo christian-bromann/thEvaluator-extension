@@ -14,6 +14,7 @@
     "permissions": ["tabs", "cookies", "*://*/"],
     "content_scripts": [{
         "js": ["js/thEvaluatorInjected.js","js/injected.js"],
+        "css": ["css/injected.css"],
         "matches": ["<all_urls>"]
     }],
     "content_security_policy": "script-src 'self' http://localhost; object-src 'self'"

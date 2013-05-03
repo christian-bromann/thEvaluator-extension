@@ -42,6 +42,31 @@ thEvaluatorInjected.prototype.sendCoordToExtension = function(event) {
     });
 };
 
+thEvaluatorInjected.prototype.printWelcomeMessage = function() {
+
+    var el = document.createElement('div');
+
+    el.className = 'thevaluator';
+    el.innerHTML = ''+
+    '<div class="te_wrapper">'+
+    '  <div class="te_window">'+
+    '    <header><h1>thEvaluator</h1></header>'+
+    '    <section>'+
+    '      <p><b>Testcase name:</b> '+this.testcase.name+'</p>'+
+    '      <p><b>Task #1:</b> ' + this.testcase.tasks[0].description + '</p>'+
+    '      <button class="start">Start</button>'+
+    '    </section>'+
+    '  </div>'+
+    '</div>';
+
+    document.body.appendChild(el);
+
+};
+
+// thEvaluatorInjected.prototype.isPopupOpen = function() {
+    
+// }
+
 /**
  * ------------------- event functions -------------------------------------
  */
@@ -59,4 +84,6 @@ thEvaluatorInjected.prototype.registerEventListener = function(request) {
 
     this.log('register event listener for ' + document.URL);
     document.body.addEventListener('click', this.sendCoordToExtension.bind(this));
+
+    this.printWelcomeMessage();
 };
