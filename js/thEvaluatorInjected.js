@@ -10,6 +10,7 @@ var thEvaluatorInjected = function() {
     this.testcase      = null;
     this.currentTask   = null;
     this.currentTaskNr = 0;
+    this.taskStarted   = false;
 
 };
 
@@ -32,7 +33,7 @@ thEvaluatorInjected.prototype.log = function(msg) {
 
 thEvaluatorInjected.prototype.sendCoordToExtension = function(event) {
 
-    if(!this.testcase) return;
+    if(!this.testcase || !this.taskStarted) return;
 
     e = event || window.event;
 
@@ -64,16 +65,33 @@ thEvaluatorInjected.prototype.loadTemplate = function(name,replace,cb) {
 
 };
 
-thEvaluatorInjected.prototype.printWelcomeMessage = function() {
+thEvaluatorInjected.prototype.showTaskLayer = function() {
 
-    var replace = {
-        testcaseName: this.testcase.name,
-        description: this.currentTask.description,
-        currentTask: this.currentTaskNr+1,
-        allTasks: this.testcase.tasks.length
-    };
+    var that = this,
+        replace = {
+            testcaseName: this.testcase.name,
+            description: this.currentTask.description,
+            currentTask: this.currentTaskNr+1,
+            allTasks: this.testcase.tasks.length
+        };
+
     this.loadTemplate('welcome',replace,function(template) {
         document.body.insertAdjacentHTML('beforeend',template);
+        document.querySelectorAll('.thevaluator .start')[0].addEventListener('click',function() {
+            document.body.removeChild(document.querySelectorAll('.thevaluator')[0]);
+            that.set('taskStarted', true);
+        });
+    });
+
+};
+
+thEvaluatorInjected.prototype.showThanksLayer = function() {
+
+    this.loadTemplate('thanks',function(template) {
+        document.body.insertAdjacentHTML('beforeend',template);
+        document.querySelectorAll('.thevaluator .close')[0].addEventListener('click',function() {
+            document.body.removeChild(document.querySelectorAll('.thevaluator')[0]);
+        });
     });
 
 };
@@ -81,12 +99,43 @@ thEvaluatorInjected.prototype.printWelcomeMessage = function() {
 thEvaluatorInjected.prototype.hitTargetElem = function(e) {
     e.preventDefault();
     e.stopPropagation();
-    alert('you MADE IT');
+
+    if(this.currentTaskNr + 1 === this.testcase.tasks.length) {
+        // reset cookies
+        this.set('currentTaskNr',0);
+        this.set('taskStarted',false);
+        chrome.extension.sendMessage({action:'reset'});
+        this.showThanksLayer();
+    } else {
+        this.set('taskStarted',false);
+        this.set('currentTaskNr',++this.currentTaskNr);
+
+        this.currentTask = this.testcase.tasks[this.currentTaskNr];
+        this.log('go to next task: '+this.currentTask.description);
+        this.showTaskLayer();
+    }
 };
 
-// thEvaluatorInjected.prototype.isPopupOpen = function() {
+thEvaluatorInjected.prototype.set = function(key,value) {
+    var host = document.location.host.split('.');
+    host = '.' + (host.slice(host.length - 2,host.length).join('.'));
 
-// }
+    this[key] = value;
+    $.cookie('thevaluator_'+key, value, { domain: host, path: '/' });
+};
+
+thEvaluatorInjected.prototype.get = function(key) {
+    var ret = $.cookie('thevaluator_'+key);
+
+    switch(key) {
+        case 'currentTaskNr': ret = parseInt(ret,10);
+        break;
+        case 'taskStarted': ret = ret === 'true';
+        break;
+    }
+
+    return ret;
+};
 
 /**
  * ------------------- event functions -------------------------------------
@@ -100,11 +149,15 @@ thEvaluatorInjected.prototype.registerEventListener = function(request) {
 
     if(!request.testcase) return;
 
+    if(!this.get('currentTaskNr')) this.set('currentTaskNr',0);
+    if(!this.get('taskStarted')) this.set('taskStarted',false);
+
     this.testcase = request.testcase;
     this.log('current testcase: '+this.testcase.name);
-    this.currentTask   = this.testcase.tasks[request.currentTask];
-    this.currentTaskNr = request.currentTask;
-    this.log('current task ('+request.currentTask+'/'+this.testcase.tasks.length+'): '+this.currentTask.description);
+    this.currentTaskNr = this.get('currentTaskNr');
+    this.taskStarted   = this.get('taskStarted');
+    this.currentTask   = this.testcase.tasks[this.currentTaskNr];
+    this.log('current task ('+(this.currentTaskNr + 1)+'/'+this.testcase.tasks.length+') [status: '+(this.taskStarted?'started':'not started')+']: '+this.currentTask.description);
 
     this.log('register event listener for ' + document.URL);
     document.body.addEventListener('click', this.sendCoordToExtension.bind(this));
@@ -115,5 +168,8 @@ thEvaluatorInjected.prototype.registerEventListener = function(request) {
     }
     this.log('found '+this.targetElem.length+' target elements (' + this.currentTask.targetElem + ') on this page');
 
-    this.printWelcomeMessage();
+    if(this.currentTaskNr === 0 && !this.taskStarted) {
+        this.showTaskLayer();
+    }
+
 };

@@ -6,6 +6,7 @@
     top: 0;
     left: 0;
     background: rgba(255,255,255,0.75);
+    z-index: 999999999;
 }
 
 .thevaluator > .te_wrapper {
@@ -52,6 +53,12 @@
     text-align: left;
     padding: 0 15px 15px;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.thevaluator > .te_wrapper > .te_window.thanks section h2 {
+    text-align: center;
+    margin: 20px 0;
+    border: 0;
 }
 
 .thevaluator > .te_wrapper > .te_window section button {
