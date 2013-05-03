@@ -17,5 +17,8 @@
         "css": ["css/injected.css"],
         "matches": ["<all_urls>"]
     }],
+    "web_accessible_resources": [
+        "templates/welcome.tpl"
+    ],
     "content_security_policy": "script-src 'self' http://localhost; object-src 'self'"
 }

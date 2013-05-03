@@ -8,7 +8,8 @@ var thEvaluatorInjected = function() {
     this.logStyleLabel = 'color:#0088cc;font-weight:bold;';
     this.logStyle      = 'color:#999999';
     this.testcase      = null;
-    this.currentTask   = 0;
+    this.currentTask   = null;
+    this.currentTaskNr = 0;
 
 };
 
@@ -43,24 +44,37 @@ thEvaluatorInjected.prototype.sendCoordToExtension = function(event) {
     });
 };
 
+thEvaluatorInjected.prototype.loadTemplate = function(name,replace,cb) {
+    var sourceURL = chrome.extension.getURL('templates/' + name + '.tpl'),
+        xmlhttp   = new XMLHttpRequest();
+
+    if(typeof replace === 'function') {
+        cb = replace;
+    }
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+            cb(xmlhttp.responseText.replace(/%[a-zA-Z]+%/g,function(all) { return this.hasOwnProperty(all.substr(1,all.length-2)) ? this[all.substr(1,all.length-2)] : all; }.bind(replace)));
+        }
+    };
+
+    this.log('load resource: ' + sourceURL);
+    xmlhttp.open("GET", sourceURL, false );
+    xmlhttp.send();
+
+};
+
 thEvaluatorInjected.prototype.printWelcomeMessage = function() {
 
-    var el = document.createElement('div');
-
-    el.className = 'thevaluator';
-    el.innerHTML = ''+
-    '<div class="te_wrapper">'+
-    '  <div class="te_window">'+
-    '    <header><h1>thEvaluator</h1></header>'+
-    '    <section>'+
-    '      <p><b>Testcase name:</b> '+this.testcase.name+'</p>'+
-    '      <p><b>Task #1:</b> ' + this.currentTask.description + '</p>'+
-    '      <button class="start">Start</button>'+
-    '    </section>'+
-    '  </div>'+
-    '</div>';
-
-    // document.body.appendChild(el);
+    var replace = {
+        testcaseName: this.testcase.name,
+        description: this.currentTask.description,
+        currentTask: this.currentTaskNr+1,
+        allTasks: this.testcase.tasks.length
+    };
+    this.loadTemplate('welcome',replace,function(template) {
+        document.body.insertAdjacentHTML('beforeend',template);
+    });
 
 };
 
@@ -88,7 +102,8 @@ thEvaluatorInjected.prototype.registerEventListener = function(request) {
 
     this.testcase = request.testcase;
     this.log('current testcase: '+this.testcase.name);
-    this.currentTask = this.testcase.tasks[request.currentTask];
+    this.currentTask   = this.testcase.tasks[request.currentTask];
+    this.currentTaskNr = request.currentTask;
     this.log('current task ('+request.currentTask+'/'+this.testcase.tasks.length+'): '+this.currentTask.description);
 
     this.log('register event listener for ' + document.URL);
