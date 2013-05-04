@@ -57,7 +57,7 @@ redirect = function() {
         var tab;
         for (var i = 0; i < tabs.length; ++i) {
             tab = tabs[i];
-            if (tab.url && tab.url === testcase.url) {
+            if (tab.url && sanitize(tab.url) === sanitize(testcase.url)) {
                 chrome.tabs.update(tab.id, {url: tab.url, selected: true});
                 return;
             }
@@ -65,6 +65,18 @@ redirect = function() {
         chrome.tabs.create({url: testcase.url});
     });
 
+},
+
+sanitize = function(url) {
+    return url.replace('http://','').replace('www.','').split(/[\/|?|#]/)[0];
+},
+
+reset = function() {
+    testcase = null;
+
+    chrome.tabs.getSelected(null, function(tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'reset'});
+    });
 };
 
 // register actions
@@ -74,7 +86,9 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
         break;
         case 'sendMousePosition': sendMousePosition(request);
         break;
-        case 'reset': testcase = null;
+        case 'reset': reset();
+        break;
+        case 'getSessionInfo': sendResponse(testcase);
         break;
         default:
             console.warn('[background.js] no action \'%s\' found!',request.action);
@@ -88,8 +102,8 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
 
         chrome.tabs.getSelected(null, function(tab) {
 
-            var desiredURI = testcase.url.replace('http://','').replace('www.','').split(/[\/|?|#]/)[0],
-                currentURI = tab.url.replace('http://','').replace('www.','').split(/[\/|?|#]/)[0];
+            var desiredURI = sanitize(testcase.url),
+                currentURI = sanitize(tab.url);
 
             if(testcase && desiredURI === currentURI) {
                 // resize browser resolution

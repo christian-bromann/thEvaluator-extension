@@ -176,3 +176,10 @@ thEvaluatorInjected.prototype.init = function(request) {
     }
 
 };
+
+thEvaluatorInjected.prototype.reset = function() {
+    $('.thevaluator').fadeOut(function() { this.remove(); });
+    if(this.widget) {
+        this.widget.remove();
+    }
+};

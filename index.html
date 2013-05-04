@@ -8,7 +8,7 @@
     <h1>thEvaluator</h1>
 </header>
 
-<section>
+<section class="register">
     <h2>Welcome!</h2>
     <p>
         Please insert the ID of the testcase you'ld like to participate.<br>
@@ -19,9 +19,22 @@
     </p>
 
     <input type="text" name="testcase" placeholder="testcase ID">
-    <button id="startTestCase">start</button>
+    <button class="startTestCase">start</button>
 </section>
 
+<section class="overview">
+    <p>
+        <strong>current testcase</strong>
+        <span class="testcasename"></span>
+    </p>
+    <p>
+        <strong>current task</strong>
+        <span class="taskdescription"></span>
+    </p>
+
+    <button class="stopTestCase">stop</button>
+    
+</section>
 
 
 <script src="js/libs/jquery-1.8.0.js"></script>

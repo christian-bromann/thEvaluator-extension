@@ -5,7 +5,6 @@ html,body {
     margin: 0;
     padding: 0;
     width:200px;
-    height:320px;
     background: #EEEEEE;
     color: #333333;
 }
@@ -24,6 +23,10 @@ p {
 section {
     text-align: center;
     padding: 0 10px;
+
+    &.overview {
+        text-align: left;
+    }
 }
 
 input {
@@ -33,4 +36,13 @@ input {
 button {
     @extend .te_button;
     margin: 15px auto;
+}
+
+.overview {
+    display: none;
+}
+
+strong {
+    display: block;
+    margin: 0 0 5px;
 }
