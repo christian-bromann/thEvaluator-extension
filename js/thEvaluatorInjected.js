@@ -154,7 +154,7 @@ thEvaluatorInjected.prototype.startTestCase = function(request) {
     this.redirectTo(request.testcase.url);
 };
 
-thEvaluatorInjected.prototype.registerEventListener = function(request) {
+thEvaluatorInjected.prototype.init = function(request) {
 
     if(!request.testcase) return;
 
@@ -168,15 +168,18 @@ thEvaluatorInjected.prototype.registerEventListener = function(request) {
     this.currentTask   = this.testcase.tasks[this.currentTaskNr];
     this.log('current task ('+(this.currentTaskNr + 1)+'/'+this.testcase.tasks.length+') [status: '+(this.taskStarted?'started':'not started')+']: '+this.currentTask.description);
 
+    // register event for clicks
     this.log('register event listener for ' + document.URL);
     document.body.addEventListener('click', this.sendCoordToExtension.bind(this));
 
+    // register target events
     this.targetElem = document.querySelectorAll(this.currentTask.targetElem);
     for(var i = 0; i < this.targetElem.length; ++i) {
         this.targetElem[i].addEventListener(this.currentTask.targetAction, this.hitTargetElem.bind(this));
     }
     this.log('found '+this.targetElem.length+' target elements (' + this.currentTask.targetElem + ') on this page');
 
+    // show task or widget layer
     if(this.currentTaskNr === 0 && !this.taskStarted) {
         this.showTaskLayer();
     }else if(this.taskStarted) {

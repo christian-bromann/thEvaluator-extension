@@ -60,6 +60,10 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
     if (changeInfo.status === 'complete') {
-        chrome.tabs.sendMessage(tabId, {action: 'registerEventListener', testcase: testcase});
+
+        // resize browser resolution
+        chrome.windows.update(chrome.windows.WINDOW_ID_CURRENT,{left:0,top:0,width:testcase.resolution[0],height:testcase.resolution[1]});
+
+        chrome.tabs.sendMessage(tabId, {action: 'init', testcase: testcase});
     }
 });
