@@ -15,11 +15,6 @@ var thEvaluatorInjected = function() {
 
 };
 
-thEvaluatorInjected.prototype.redirectTo = function(url) {
-    if(!url) return;
-    window.location.href = url;
-};
-
 thEvaluatorInjected.prototype.log = function(msg) {
     if(typeof msg === 'string') {
         console.log('%c[thEvaluator]%c - '+msg, this.logStyleLabel, this.logStyle);
@@ -150,13 +145,7 @@ thEvaluatorInjected.prototype.get = function(key) {
  * ------------------- event functions -------------------------------------
  */
 
-thEvaluatorInjected.prototype.startTestCase = function(request) {
-    this.redirectTo(request.testcase.url);
-};
-
 thEvaluatorInjected.prototype.init = function(request) {
-
-    if(!request.testcase) return;
 
     if(!this.get('currentTaskNr')) this.set('currentTaskNr',0);
     if(!this.get('taskStarted')) this.set('taskStarted',false);
