@@ -1,0 +1,36 @@
+@import "components";
+
+html,body {
+    @extend .te_font;
+    margin: 0;
+    padding: 0;
+    width:200px;
+    height:320px;
+    background: #EEEEEE;
+    color: #333333;
+}
+
+header {
+    @extend .te_header;
+    width: 100%;
+}
+
+h2 {
+    font-size: 14px;
+}
+p {
+    font-size: 12px;
+}
+section {
+    text-align: center;
+    padding: 0 10px;
+}
+
+input {
+    @extend .te_input;
+    width: 80%;
+}
+button {
+    @extend .te_button;
+    margin: 15px auto;
+}

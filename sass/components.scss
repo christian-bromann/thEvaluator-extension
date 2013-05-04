@@ -1,0 +1,75 @@
+.te_button {
+     color: white;
+     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+     background-color: #006ccc;
+     background-image: linear-gradient(to bottom, #0088cc, #0044cc);
+     background-repeat: repeat-x;
+     border: 1px solid #cccccc;
+     border-color: #0044cc #0044cc #002a80;
+     display: block;
+     padding: 4px 12px;
+     font-size: 14px;
+     line-height: 20px;
+     text-align: center;
+     cursor: pointer;
+     border-radius: 4px;
+     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.te_input {
+    height: 20px;
+    padding: 4px 6px;
+    display: inline-block;
+    font-size: 14px;
+    line-height: 20px;
+    color: #555555;
+    vertical-align: middle;
+    background-color: white;
+    font-weight: normal;
+    border: 1px solid #cccccc;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+    transition: border linear 0.2s, box-shadow linear 0.2s;
+    -webkit-appearance: textfield;
+    -webkit-rtl-ordering: logical;
+    -webkit-user-select: text;
+    border-radius: 4px;
+}
+
+.te_header {
+     background-color: #1b1b1b;
+     background-image: linear-gradient(to bottom, #222222, #111111);
+     background-repeat: repeat-x;
+     border-color: #252525;
+     text-align: center;
+
+     >h1 {
+          color: #999999;
+          font-size: 20px;
+          font-weight: 200;
+          margin: 0;
+          padding: 10px 0;
+          text-align: center;
+          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+     }
+}
+
+.te_overlay {
+    display: table;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 99999999;
+
+    > div {
+        display: table-cell;
+        vertical-align: middle;
+    }
+}
+
+.te_font {
+     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif!important;
+}

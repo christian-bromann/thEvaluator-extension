@@ -13,13 +13,20 @@
     "web_accessible_resources": ["js/inject.js"],
     "permissions": [ "cookies", "tabs", "http://*/*", "https://*/*" ],
     "content_scripts": [{
-        "js": ["js/libs/jquery-1.8.0.js","js/libs/jquery.cookie.js","js/thEvaluatorInjected.js","js/injected.js"],
-        "css": ["css/injected.css"],
+        "js": [
+            "js/libs/jquery-1.8.0.js",
+            "js/libs/jquery.cookie.js",
+            "js/thEvaluatorWidget.js",
+            "js/thEvaluatorInjected.js",
+            "js/injected.js"
+        ],
+        "css": ["dist/injected.css"],
         "matches": ["<all_urls>"]
     }],
     "web_accessible_resources": [
-        "templates/welcome.tpl",
-        "templates/thanks.tpl"
+        "templates/task.tpl",
+        "templates/thanks.tpl",
+        "templates/widget.tpl"
     ],
     "content_security_policy": "script-src 'self' http://localhost; object-src 'self'"
 }

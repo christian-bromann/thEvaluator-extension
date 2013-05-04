@@ -9,18 +9,15 @@ var thEvaluatorInjected = function() {
     this.logStyle      = 'color:#999999';
     this.testcase      = null;
     this.currentTask   = null;
+    this.widget        = null;
     this.currentTaskNr = 0;
     this.taskStarted   = false;
 
 };
 
 thEvaluatorInjected.prototype.redirectTo = function(url) {
-
     if(!url) return;
-
-    var script = document.createElement('script');
-    script.innerHTML = 'window.location.href = \'' + url + '\'';
-    document.body.appendChild(script);
+    window.location.href = url;
 };
 
 thEvaluatorInjected.prototype.log = function(msg) {
@@ -75,10 +72,15 @@ thEvaluatorInjected.prototype.showTaskLayer = function() {
             allTasks: this.testcase.tasks.length
         };
 
-    this.loadTemplate('welcome',replace,function(template) {
-        document.body.insertAdjacentHTML('beforeend',template);
-        document.querySelectorAll('.thevaluator .start')[0].addEventListener('click',function() {
-            document.body.removeChild(document.querySelectorAll('.thevaluator')[0]);
+    this.loadTemplate('task',replace,function(template) {
+        $('body').append(template);
+        $('.thevaluator .start').click(function() {
+
+            if(!that.widget) {
+                that.widget = new thEvaluatorWidget(that.currentTaskNr+1,that.testcase.tasks.length,that.currentTask.description);
+            }
+
+            $('.thevaluator').fadeOut();
             that.set('taskStarted', true);
         });
     });
@@ -88,9 +90,9 @@ thEvaluatorInjected.prototype.showTaskLayer = function() {
 thEvaluatorInjected.prototype.showThanksLayer = function() {
 
     this.loadTemplate('thanks',function(template) {
-        document.body.insertAdjacentHTML('beforeend',template);
-        document.querySelectorAll('.thevaluator .close')[0].addEventListener('click',function() {
-            document.body.removeChild(document.querySelectorAll('.thevaluator')[0]);
+        $('body').append(template);
+        $('.thevaluator .close').click(function() {
+            $('.thevaluator').fadeOut(function(){ this.remove(); });
         });
     });
 
@@ -101,18 +103,25 @@ thEvaluatorInjected.prototype.hitTargetElem = function(e) {
     e.stopPropagation();
 
     if(this.currentTaskNr + 1 === this.testcase.tasks.length) {
+
         // reset cookies
         this.set('currentTaskNr',0);
         this.set('taskStarted',false);
+
         chrome.extension.sendMessage({action:'reset'});
+        this.widget.remove();
         this.showThanksLayer();
+
     } else {
+
         this.set('taskStarted',false);
         this.set('currentTaskNr',++this.currentTaskNr);
 
         this.currentTask = this.testcase.tasks[this.currentTaskNr];
         this.log('go to next task: '+this.currentTask.description);
+        this.widget.update(this.currentTaskNr+1,this.currentTask.description);
         this.showTaskLayer();
+
     }
 };
 
@@ -153,7 +162,7 @@ thEvaluatorInjected.prototype.registerEventListener = function(request) {
     if(!this.get('taskStarted')) this.set('taskStarted',false);
 
     this.testcase = request.testcase;
-    this.log('current testcase: '+this.testcase.name);
+    this.log('testcase: '+this.testcase.name);
     this.currentTaskNr = this.get('currentTaskNr');
     this.taskStarted   = this.get('taskStarted');
     this.currentTask   = this.testcase.tasks[this.currentTaskNr];
@@ -170,6 +179,8 @@ thEvaluatorInjected.prototype.registerEventListener = function(request) {
 
     if(this.currentTaskNr === 0 && !this.taskStarted) {
         this.showTaskLayer();
+    }else if(this.taskStarted) {
+        this.widget = new thEvaluatorWidget(this.currentTaskNr+1,this.testcase.tasks.length,this.currentTask.description);
     }
 
 };

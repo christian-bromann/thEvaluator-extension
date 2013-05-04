@@ -1,0 +1,64 @@
+@import "components";
+
+.thevaluator {
+    @extend .te_overlay;
+    background: rgba(255,255,255,0.75);
+
+    .te_window {
+        width: 500px;
+        border-radius: 4px;
+        margin: 0 auto;
+        border: 1px solid #222222;
+        background: #EEEEEE;
+
+        header {
+            @extend .te_header;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            width: 100%;
+        }
+
+        section {
+            @extend .te_font;
+            text-align: left;
+            padding: 0 15px 15px;
+
+            button {
+                @extend .te_button;
+                margin: 0 auto;
+            }
+        }
+
+        &.thanks section h2 {
+            text-align: center;
+            margin: 20px 0;
+            border: 0;
+        }
+    }
+}
+
+.thevaluator_widget {
+    @extend .te_font;
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: #eeeeee;
+    border-radius: 4px;
+    box-shadow: rgba(153, 153, 153,0.7) 1px 1px 3px 3px;;
+
+    h1{
+        @extend .te_header;
+        @extend .te_font;
+        color: #999999;
+        width: 150px;
+        float: left;
+        padding: 7px 0 6px;
+    }
+
+    p {
+        @extend .te_font;
+        padding: 0;
+        margin: 0;
+    }
+}

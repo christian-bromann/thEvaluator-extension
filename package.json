@@ -1,7 +1,7 @@
 {
   "name": "thEvaluator-extension",
   "description": "chrome extension of thEvaluator project",
-  "version": "0.1",
+  "version": "0.0.1",
   "homepage": "https://github.com/christian-bromann/thEvaluator-extension",
   "author": {
     "name": "Christian Bromann",
@@ -14,5 +14,10 @@
   },
   "bugs": {
     "url": "https://github.com/christian-bromann/thEvaluator-extension/issues"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-sass": "~0.3.x",
+    "grunt-contrib-watch": "~0.3.x"
   }
 }
