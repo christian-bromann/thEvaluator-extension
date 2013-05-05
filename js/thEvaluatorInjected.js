@@ -11,7 +11,7 @@ var thEvaluatorInjected = function() {
     this.currentTask   = null;
     this.widget        = null;
     this.currentTaskNr = 0;
-    this.taskStarted   = false;
+    this.taskStarted   = 0;
 
 };
 
@@ -57,14 +57,15 @@ thEvaluatorInjected.prototype.loadTemplate = function(name,replace,cb) {
 
 };
 
-thEvaluatorInjected.prototype.showTaskLayer = function() {
+thEvaluatorInjected.prototype.showTaskLayer = function(isTimeoutVisible) {
 
     var that = this,
         replace = {
             testcaseName: this.testcase.name,
             description: this.currentTask.description,
             currentTask: this.currentTaskNr+1,
-            allTasks: this.testcase.tasks.length
+            allTasks: this.testcase.tasks.length,
+            timeoutClass: !isTimeoutVisible ? ' hidden' : ''
         };
 
     this.loadTemplate('task',replace,function(template) {
@@ -76,7 +77,8 @@ thEvaluatorInjected.prototype.showTaskLayer = function() {
             }
 
             $('.thevaluator').fadeOut();
-            that.set('taskStarted', true);
+            that.set('taskStarted', Date.now());
+            that.checkTimeout();
         });
     });
 
@@ -101,23 +103,25 @@ thEvaluatorInjected.prototype.hitTargetElem = function(e) {
 
         // reset cookies
         this.set('currentTaskNr',0);
-        this.set('taskStarted',false);
+        this.set('taskStarted',0);
 
         chrome.extension.sendMessage({action:'reset'});
         this.widget.remove();
         this.showThanksLayer();
 
     } else {
-
-        this.set('taskStarted',false);
-        this.set('currentTaskNr',++this.currentTaskNr);
-
-        this.currentTask = this.testcase.tasks[this.currentTaskNr];
-        this.log('go to next task: '+this.currentTask.description);
-        this.widget.update(this.currentTaskNr+1,this.currentTask.description);
-        this.showTaskLayer();
-
+        this.nextTask();
     }
+};
+
+thEvaluatorInjected.prototype.nextTask = function(isTimeoutVisible) {
+    this.set('taskStarted',0);
+    this.set('currentTaskNr',++this.currentTaskNr);
+
+    this.currentTask = this.testcase.tasks[this.currentTaskNr];
+    this.log('go to next task: '+this.currentTask.description);
+    this.widget.update(this.currentTaskNr+1,this.currentTask.description);
+    this.showTaskLayer(isTimeoutVisible);
 };
 
 thEvaluatorInjected.prototype.set = function(key,value) {
@@ -129,16 +133,20 @@ thEvaluatorInjected.prototype.set = function(key,value) {
 };
 
 thEvaluatorInjected.prototype.get = function(key) {
-    var ret = $.cookie('thevaluator_'+key);
+    return parseInt($.cookie('thevaluator_'+key),10);
+};
 
-    switch(key) {
-        case 'currentTaskNr': ret = parseInt(ret,10);
-        break;
-        case 'taskStarted': ret = ret === 'true';
-        break;
+thEvaluatorInjected.prototype.checkTimeout = function() {
+
+    if(this.taskStarted === 0) return;
+
+    var time = this.currentTask.maxTime * 60000;
+
+    if(this.taskStarted + time < Date.now()) {
+        this.nextTask(true);
     }
 
-    return ret;
+    window.setTimeout(this.checkTimeout.bind(this),1000);
 };
 
 /**
@@ -148,7 +156,7 @@ thEvaluatorInjected.prototype.get = function(key) {
 thEvaluatorInjected.prototype.init = function(request) {
 
     if(!this.get('currentTaskNr')) this.set('currentTaskNr',0);
-    if(!this.get('taskStarted')) this.set('taskStarted',false);
+    if(!this.get('taskStarted')) this.set('taskStarted',0);
 
     this.testcase = request.testcase;
     this.log('testcase: '+this.testcase.name);
@@ -175,6 +183,9 @@ thEvaluatorInjected.prototype.init = function(request) {
         this.widget = new thEvaluatorWidget(this.currentTaskNr+1,this.testcase.tasks.length,this.currentTask.description);
     }
 
+    // check max time
+    this.checkTimeout();
+
 };
 
 thEvaluatorInjected.prototype.reset = function() {
@@ -182,4 +193,7 @@ thEvaluatorInjected.prototype.reset = function() {
     if(this.widget) {
         this.widget.remove();
     }
+
+    this.currentTaskNr = 0;
+    this.taskStarted = 0;
 };

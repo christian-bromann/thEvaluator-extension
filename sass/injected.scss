@@ -27,6 +27,11 @@
                 @extend .te_button;
                 margin: 0 auto;
             }
+            em {
+                color: #006ccc;
+                font-weight: bold;
+                font-style: normal;
+            }
         }
 
         &.thanks section h2 {
