@@ -71,11 +71,11 @@ sanitize = function(url) {
     return url.replace('http://','').replace('www.','').split(/[\/|?|#]/)[0];
 },
 
-reset = function() {
+reset = function(request) {
     testcase = null;
 
     chrome.tabs.getSelected(null, function(tab) {
-        chrome.tabs.sendMessage(tab.id, {action: 'reset'});
+        chrome.tabs.sendMessage(tab.id, request);
     });
 };
 
@@ -86,7 +86,7 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
         break;
         case 'sendMousePosition': sendMousePosition(request);
         break;
-        case 'reset': reset();
+        case 'reset': reset(request);
         break;
         case 'getSessionInfo': sendResponse(testcase);
         break;

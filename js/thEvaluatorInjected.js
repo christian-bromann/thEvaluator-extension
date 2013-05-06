@@ -84,9 +84,20 @@ thEvaluatorInjected.prototype.showTaskLayer = function(isTimeoutVisible) {
 
 };
 
-thEvaluatorInjected.prototype.showThanksLayer = function() {
+thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible) {
 
-    this.loadTemplate('thanks',function(template) {
+    // reset cookies
+    this.set('currentTaskNr',0);
+    this.set('taskStarted',0);
+
+    chrome.extension.sendMessage({action:'reset',sender:'contentscript'});
+    this.widget.remove();
+
+    var replace = {
+        timeoutClass: !isTimeoutVisible ? ' hidden' : ''
+    };
+
+    this.loadTemplate('thanks',replace,function(template) {
         $('body').append(template);
         $('.thevaluator .close').click(function() {
             $('.thevaluator').fadeOut(function(){ this.remove(); });
@@ -100,15 +111,7 @@ thEvaluatorInjected.prototype.hitTargetElem = function(e) {
     e.stopPropagation();
 
     if(this.currentTaskNr + 1 === this.testcase.tasks.length) {
-
-        // reset cookies
-        this.set('currentTaskNr',0);
-        this.set('taskStarted',0);
-
-        chrome.extension.sendMessage({action:'reset'});
-        this.widget.remove();
-        this.showThanksLayer();
-
+        this.showTaskLayer();
     } else {
         this.nextTask();
     }
@@ -143,7 +146,11 @@ thEvaluatorInjected.prototype.checkTimeout = function() {
     var time = this.currentTask.maxTime * 60000;
 
     if(this.taskStarted + time < Date.now()) {
-        this.nextTask(true);
+        if(this.testcase.tasks.length === this.currentTaskNr + 1) {
+            this.showThanksLayer(true);
+        } else {
+            this.nextTask(true);
+        }
     }
 
     window.setTimeout(this.checkTimeout.bind(this),1000);
@@ -188,7 +195,10 @@ thEvaluatorInjected.prototype.init = function(request) {
 
 };
 
-thEvaluatorInjected.prototype.reset = function() {
+thEvaluatorInjected.prototype.reset = function(request) {
+
+    if(request.sender === 'contentscript') return;
+
     $('.thevaluator').fadeOut(function() { this.remove(); });
     if(this.widget) {
         this.widget.remove();
