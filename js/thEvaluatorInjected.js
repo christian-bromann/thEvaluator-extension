@@ -25,7 +25,7 @@ thEvaluatorInjected.prototype.log = function(msg) {
 
 thEvaluatorInjected.prototype.sendCoordToExtension = function(event) {
 
-    if(!this.testcase || !this.taskStarted) return;
+    if(!this.testcase || !this.taskStarted || $(event.target).parents('.thevaluator').length) return;
 
     e = event || window.event;
 
@@ -86,21 +86,25 @@ thEvaluatorInjected.prototype.showTaskLayer = function(isTimeoutVisible) {
 
 thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible, isRequiredVisible) {
 
+    if($('.thevaluator').length) return;
+
     // reset cookies
-    this.set('currentTaskNr',0);
-    this.set('taskStarted',0);
+    if(this.widget) this.widget.remove();
 
-    chrome.extension.sendMessage({action:'reset',sender:'contentscript'});
-    this.widget.remove();
-
-    var replace = {
-        timeoutClass: !isTimeoutVisible ? ' hidden' : '',
-        requiredClass: !isRequiredVisible ? 'hidden' : ''
-    };
+    var that    = this,
+        replace = {
+            timeoutClass: !isTimeoutVisible ? ' hidden' : '',
+            requiredClass: !isRequiredVisible ? 'hidden' : ''
+        };
 
     this.loadTemplate('thanks',replace,function(template) {
         $('body').append(template);
         $('.thevaluator .close').click(function() {
+
+            chrome.extension.sendMessage({action:'reset',sender:'contentscript'});
+            that.set('currentTaskNr',0);
+            that.set('taskStarted',0);
+
             $('.thevaluator').fadeOut(function(){ this.remove(); });
         });
     });
@@ -140,13 +144,19 @@ thEvaluatorInjected.prototype.get = function(key) {
     return parseInt($.cookie('thevaluator_'+key),10);
 };
 
+thEvaluatorInjected.prototype.taskExpired = function() {
+    var time = this.currentTask.maxTime * 60000;
+
+    return this.taskStarted + time < Date.now();
+};
+
 thEvaluatorInjected.prototype.checkTimeout = function() {
 
     if(this.taskStarted === 0) return;
 
     var time = this.currentTask.maxTime * 60000;
 
-    if(this.taskStarted + time < Date.now()) {
+    if(this.taskExpired()) {
         if(this.testcase.tasks.length === this.currentTaskNr + 1 || this.currentTask.required) {
             this.showThanksLayer(true,this.currentTask.required);
         } else {
@@ -185,9 +195,11 @@ thEvaluatorInjected.prototype.init = function(request) {
     this.log('found '+this.targetElem.length+' target elements (' + this.currentTask.targetElem + ') on this page');
 
     // show task or widget layer
-    if(this.currentTaskNr === 0 && !this.taskStarted) {
+    if(this.taskStarted && this.taskExpired()) {
+        this.showThanksLayer(true,true);
+    } if(this.currentTaskNr === 0 && !this.taskStarted) {
         this.showTaskLayer();
-    }else if(this.taskStarted) {
+    } else if(this.taskStarted && !this.taskExpired()) {
         this.widget = new thEvaluatorWidget(this.currentTaskNr+1,this.testcase.tasks.length,this.currentTask.description);
     }
 

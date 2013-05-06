@@ -32,6 +32,9 @@ thEvaluatorWidget.prototype.hide = function() {
 };
 
 thEvaluatorWidget.prototype.remove = function() {
+
+    if(!this.el) return;
+
     this.el.fadeOut(function() {
         this.el.remove();
     }.bind(this));
