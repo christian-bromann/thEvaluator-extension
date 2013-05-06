@@ -84,7 +84,7 @@ thEvaluatorInjected.prototype.showTaskLayer = function(isTimeoutVisible) {
 
 };
 
-thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible) {
+thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible, isRequiredVisible) {
 
     // reset cookies
     this.set('currentTaskNr',0);
@@ -94,7 +94,8 @@ thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible) {
     this.widget.remove();
 
     var replace = {
-        timeoutClass: !isTimeoutVisible ? ' hidden' : ''
+        timeoutClass: !isTimeoutVisible ? ' hidden' : '',
+        requiredClass: !isRequiredVisible ? 'hidden' : ''
     };
 
     this.loadTemplate('thanks',replace,function(template) {
@@ -146,8 +147,8 @@ thEvaluatorInjected.prototype.checkTimeout = function() {
     var time = this.currentTask.maxTime * 60000;
 
     if(this.taskStarted + time < Date.now()) {
-        if(this.testcase.tasks.length === this.currentTaskNr + 1) {
-            this.showThanksLayer(true);
+        if(this.testcase.tasks.length === this.currentTaskNr + 1 || this.currentTask.required) {
+            this.showThanksLayer(true,this.currentTask.required);
         } else {
             this.nextTask(true);
         }
