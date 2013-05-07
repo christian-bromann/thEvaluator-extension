@@ -4,7 +4,8 @@
  */
 
 var socket   = null,
-    testcase = null;
+    testcase = null,
+    testrun  = null;
 
 // send mouse position to server via socketIO
 sendMousePosition = function(request) {
@@ -14,7 +15,18 @@ sendMousePosition = function(request) {
     }
 
     console.log('got coords ', request);
-    socket.emit('mousePosition', {id: testcase._id, x: request.x, y: request.y });
+    socket.emit('mousePosition', { _testrun: testrun._id, x: request.x, y: request.y, url: request.url, _task: request._task });
+},
+
+initTestrun = function() {
+
+    // get geodata from user
+    $.getJSON('http://smart-ip.net/geoip-json', function(data) {
+        // init testrun
+        socket.emit('init', {_testcase: testcase._id, geoData: data },function(data) {
+            testrun = data;
+        });
+    });
 },
 
 getTestcase = function(request) {
@@ -36,6 +48,7 @@ getTestcase = function(request) {
         console.info('received testcase: ',data);
         testcase = data;
 
+        initTestrun();
         redirect();
 
     });
@@ -46,6 +59,9 @@ startSocketConnection = function(request) {
     socket = window.io.connect('http://localhost:9001');
 
     socket.on('connect', function () {
+
+        if(!request) return;
+
         getTestcase(request);
     });
 },
@@ -73,6 +89,7 @@ sanitize = function(url) {
 
 reset = function(request) {
     testcase = null;
+    testrun  = null;
 
     chrome.tabs.getSelected(null, function(tab) {
         chrome.tabs.sendMessage(tab.id, request);

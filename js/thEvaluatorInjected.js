@@ -33,7 +33,9 @@ thEvaluatorInjected.prototype.sendCoordToExtension = function(event) {
     chrome.extension.sendMessage({
         action: 'sendMousePosition',
         x: e.pageX,
-        y: e.pageY
+        y: e.pageY,
+        url: document.URL,
+        _task: this.currentTask._id
     });
 };
 
