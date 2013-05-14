@@ -12,6 +12,7 @@ var thEvaluatorInjected = function() {
     this.widget        = null;
     this.currentTaskNr = 0;
     this.taskStarted   = 0;
+    this.eventStopper  = 0;
 
 };
 
@@ -23,20 +24,38 @@ thEvaluatorInjected.prototype.log = function(msg) {
     }
 };
 
-thEvaluatorInjected.prototype.sendCoordToExtension = function(event) {
+thEvaluatorInjected.prototype.sendClickCoordToExtension = function(event) {
 
     if(!this.testcase || !this.taskStarted || $(event.target).parents('.thevaluator').length) return;
 
     e = event || window.event;
 
-    this.log('send coords for testcase ' + this.testcase.id + ', x = ' + e.pageX + ' y = ' + e.pageY );
+    this.log('send click coords for testcase ' + this.testcase.id + ', x = ' + e.pageX + ' y = ' + e.pageY );
     chrome.extension.sendMessage({
-        action: 'sendMousePosition',
+        action: 'sendClickPosition',
         x: e.pageX,
         y: e.pageY,
         url: document.URL,
         _task: this.currentTask._id
     });
+};
+
+thEvaluatorInjected.prototype.sendMoveCoordToExtension = function(event) {
+    this.eventStopper++;
+
+    if(!this.testcase || !this.taskStarted || this.eventStopper % 10 !== 0) return;
+
+    e = event || window.event;
+
+    this.log('send move coords for testcase ' + this.testcase.id + ', x = ' + e.pageX + ' y = ' + e.pageY );
+    chrome.extension.sendMessage({
+        action: 'sendMovePosition',
+        x: e.pageX,
+        y: e.pageY,
+        url: document.URL,
+        _task: this.currentTask._id
+    });
+
 };
 
 thEvaluatorInjected.prototype.loadTemplate = function(name,replace,cb) {
@@ -187,7 +206,8 @@ thEvaluatorInjected.prototype.init = function(request) {
 
     // register event for clicks
     this.log('register event listener for ' + document.URL);
-    document.body.addEventListener('click', this.sendCoordToExtension.bind(this));
+    document.body.addEventListener('click', this.sendClickCoordToExtension.bind(this));
+    document.body.addEventListener('mousemove', this.sendMoveCoordToExtension.bind(this));
 
     // register target events
     this.targetElem = document.querySelectorAll(this.currentTask.targetElem);

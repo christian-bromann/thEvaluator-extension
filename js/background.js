@@ -8,14 +8,24 @@ var socket   = null,
     testrun  = null;
 
 // send mouse position to server via socketIO
-sendMousePosition = function(request) {
+sendClickPosition = function(request) {
 
     if(!testcase) {
         return;
     }
 
     console.log('got coords ', request);
-    socket.emit('mousePosition', { _testrun: testrun._id, x: request.x, y: request.y, url: request.url, _task: request._task });
+    socket.emit('clickPosition', { _testrun: testrun._id, x: request.x, y: request.y, url: request.url, _task: request._task });
+},
+
+sendMovePosition = function(request) {
+
+    if(!testcase) {
+        return;
+    }
+
+    console.log('got coords ', request);
+    socket.emit('movePosition', { _testrun: testrun._id, x: request.x, y: request.y, url: request.url, _task: request._task });
 },
 
 initTestrun = function() {
@@ -98,7 +108,9 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
     switch(request.action) {
         case 'getTestcase': getTestcase(request);
         break;
-        case 'sendMousePosition': sendMousePosition(request);
+        case 'sendClickPosition': sendClickPosition(request);
+        break;
+        case 'sendMovePosition': sendMovePosition(request);
         break;
         case 'reset': reset(request);
         break;
