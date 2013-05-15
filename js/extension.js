@@ -16,7 +16,7 @@ var reset = function(e) {
     $('.overview').css('display','none');
 
     if(e) {
-        chrome.extension.sendMessage({action: 'reset'});
+        chrome.extension.sendMessage({action: 'reset', status: 3});
             chrome.cookies.getAll({}, function(cookies) {
             for(var i=0; i<cookies.length;i++) {
                 if(cookies[i].name === 'thevaluator_currentTaskNr' || cookies[i].name === 'thevaluator_taskStarted') {

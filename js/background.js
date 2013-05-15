@@ -95,6 +95,10 @@ sanitize = function(url) {
 },
 
 reset = function(request) {
+
+    // save end status
+    socket.emit('endTestrun', { id: testrun._id, status: request.status });
+
     testcase = null;
     testrun  = null;
 

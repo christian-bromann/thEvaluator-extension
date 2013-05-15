@@ -122,7 +122,7 @@ thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible, isReq
         $('body').append(template);
         $('.thevaluator .close').click(function() {
 
-            chrome.extension.sendMessage({action:'reset',sender:'contentscript'});
+            chrome.extension.sendMessage({action:'reset',sender:'contentscript',status: isTimeoutVisible && isRequiredVisible ? 2 : 1 });
             that.set('currentTaskNr',0);
             that.set('taskStarted',0);
 
@@ -149,6 +149,11 @@ thEvaluatorInjected.prototype.nextTask = function(isTimeoutVisible) {
 
     this.currentTask = this.testcase.tasks[this.currentTaskNr];
     this.log('go to next task: '+this.currentTask.description);
+
+    if(!this.widget) {
+        return;
+    }
+
     this.widget.update(this.currentTaskNr+1,this.currentTask.description);
     this.showTaskLayer(isTimeoutVisible);
 };
