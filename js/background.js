@@ -91,7 +91,14 @@ redirect = function() {
 },
 
 sanitize = function(url) {
-    return url.replace('http://','').replace('www.','').split(/[\/|?|#]/)[0];
+    // remove http protocol
+    url = url.replace('http://','').replace('https://','');
+    // remove anything behind the TLD
+    url = url.split(/[\/|?|#]/)[0];
+    // split domain parts
+    url = url.split(/\./);
+    // return the last two parts domain.TLD
+    return url.slice(url.length-2).join('.');
 },
 
 reset = function(request) {

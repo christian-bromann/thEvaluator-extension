@@ -137,7 +137,7 @@ thEvaluatorInjected.prototype.hitTargetElem = function(e) {
     e.stopPropagation();
 
     if(this.currentTaskNr + 1 === this.testcase.tasks.length) {
-        this.showTaskLayer();
+        this.showThanksLayer();
     } else {
         this.nextTask();
     }
