@@ -260,5 +260,5 @@ thEvaluatorInjected.prototype.reset = function(request) {
 thEvaluatorInjected.prototype.scroll = function(request,sender,sendResponse) {
     this.log('scroll to ' + request.pos.x + ', ' + request.pos.y);
     window.scrollTo(request.pos.x,request.pos.y);
-    sendResponse(true);
+    sendResponse({scrollX: window.scrollX, scrollY: window.scrollY});
 };

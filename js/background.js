@@ -124,7 +124,7 @@ capturePage = function(opt,cb) {
     console.log('take screenshot on %d , %d',x,y);
 
     chrome.tabs.getSelected(null, function(tab) {
-        chrome.tabs.sendMessage(tab.id, {action: 'scroll', pos: {x:x,y:y}}, function() {
+        chrome.tabs.sendMessage(tab.id, {action: 'scroll', pos: {x:x,y:y}}, function(pos) {
             window.setTimeout(function() {
                 chrome.tabs.captureVisibleTab(null, {
                     format: 'jpeg',
@@ -133,8 +133,6 @@ capturePage = function(opt,cb) {
 
                     if(!screenshot || !screenshot.canvas) {
                         canvas = document.createElement('canvas');
-                        canvas.width = docDimension.width;
-                        canvas.height = docDimension.height;
                         screenshot.canvas = canvas;
                         screenshot.ctx = canvas.getContext('2d');
                     }
@@ -144,14 +142,14 @@ capturePage = function(opt,cb) {
                         image.src = data;
 
                         image.onload = function() {
-                            screenshot.ctx.drawImage(image, x, y);
+                            screenshot.ctx.drawImage(image, pos.scrollX, pos.scrollY);
                             // socket.emit('screenshot', { _testrun: testrun._id, name:y===0?'0':y, imageData: data});
                             cb();
                         };
                     }
 
                 });
-            },100);
+            },150);
         });
     });
 
@@ -222,6 +220,11 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
 
                         docDimension = dimension;
 
+                        if(screenshot.canvas) {
+                            screenshot.canvas.width  = docDimension.width;
+                            screenshot.canvas.height = docDimension.height;
+                        }
+
                         takeScreenshot({x:0,y:0},function() {
 
                             testcase.screenshots.push({
@@ -231,6 +234,10 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
                             chrome.tabs.sendMessage(tab.id, {action: 'scroll', pos: {x:0,y:0}});
                             chrome.tabs.sendMessage(tab.id, {action: 'init', testcase: testcase});
                             socket.emit('screenshot', { testcase: testcase, url: tab.url, imageData: screenshot.canvas.toDataURL('image/jpeg',0.1)});
+
+                            // clear canvas
+                            screenshot.ctx.fillStyle="#ffffff";
+                            screenshot.ctx.fillRect(0,0,docDimension.width,docDimension.height);
 
                         });
 
