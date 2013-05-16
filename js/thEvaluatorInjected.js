@@ -197,7 +197,7 @@ thEvaluatorInjected.prototype.checkTimeout = function() {
  * ------------------- event functions -------------------------------------
  */
 
-thEvaluatorInjected.prototype.init = function(request) {
+thEvaluatorInjected.prototype.init = function(request, sender, sendResponse) {
 
     if(!this.get('currentTaskNr')) this.set('currentTaskNr',0);
     if(!this.get('taskStarted')) this.set('taskStarted',0);
@@ -235,6 +235,15 @@ thEvaluatorInjected.prototype.init = function(request) {
 
 };
 
+thEvaluatorInjected.prototype.getDocumentInformations = function(request, sender, sendResponse) {
+    sendResponse({
+        height: document.height,
+        width: document.width,
+        innerHeight: window.innerHeight,
+        innerWidth: window.innerWidth
+    });
+};
+
 thEvaluatorInjected.prototype.reset = function(request) {
 
     if(request.sender === 'contentscript') return;
@@ -246,4 +255,10 @@ thEvaluatorInjected.prototype.reset = function(request) {
 
     this.currentTaskNr = 0;
     this.taskStarted = 0;
+};
+
+thEvaluatorInjected.prototype.scroll = function(request,sender,sendResponse) {
+    this.log('scroll to ' + request.pos.x + ', ' + request.pos.y);
+    window.scrollTo(request.pos.x,request.pos.y);
+    sendResponse(true);
 };

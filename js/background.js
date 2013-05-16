@@ -5,7 +5,9 @@
 
 var socket   = null,
     testcase = null,
-    testrun  = null;
+    testrun  = null,
+    screenshot = {},
+    docDimension = {};
 
 // send mouse position to server via socketIO
 sendClickPosition = function(request) {
@@ -112,6 +114,73 @@ reset = function(request) {
     chrome.tabs.getSelected(null, function(tab) {
         chrome.tabs.sendMessage(tab.id, request);
     });
+},
+
+capturePage = function(opt,cb) {
+
+    var x = opt.x,
+        y = opt.y;
+
+    console.log('take screenshot on %d , %d',x,y);
+
+    chrome.tabs.getSelected(null, function(tab) {
+        chrome.tabs.sendMessage(tab.id, {action: 'scroll', pos: {x:x,y:y}}, function() {
+            window.setTimeout(function() {
+                chrome.tabs.captureVisibleTab(null, {
+                    format: 'jpeg',
+                    quality: 10
+                }, function(data) {
+
+                    if(!screenshot || !screenshot.canvas) {
+                        canvas = document.createElement('canvas');
+                        canvas.width = docDimension.width;
+                        canvas.height = docDimension.height;
+                        screenshot.canvas = canvas;
+                        screenshot.ctx = canvas.getContext('2d');
+                    }
+
+                    if (data) {
+                        var image = new Image();
+                        image.src = data;
+
+                        image.onload = function() {
+                            screenshot.ctx.drawImage(image, x, y);
+                            // socket.emit('screenshot', { _testrun: testrun._id, name:y===0?'0':y, imageData: data});
+                            cb();
+                        };
+                    }
+
+                });
+            },100);
+        });
+    });
+
+},
+
+takeScreenshot = function(opt,cb) {
+
+    var x = opt.x || 0,
+        y = opt.y || 0;
+
+    if(y < docDimension.height) {
+        capturePage({x:0,y:y}, function() {
+            takeScreenshot({x:0, y: y + docDimension.innerHeight }, cb);
+        });
+    } else {
+        cb();
+    }
+},
+
+screenshotExists = function(url) {
+
+    for(var i = 0; i < testcase.screenshots.length; ++i) {
+        if(testcase.screenshots[i].url === url) {
+            return true;
+        }
+    }
+
+    return false;
+
 };
 
 // register actions
@@ -133,6 +202,7 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
+
     if (changeInfo.status === 'complete') {
 
         if(!testcase) return;
@@ -146,7 +216,32 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
                 // resize browser resolution
                 chrome.windows.update(-2,{left:0,top:0,width:testcase.resolution[0],height:testcase.resolution[1]});
 
-                chrome.tabs.sendMessage(tabId, {action: 'init', testcase: testcase});
+                if(!screenshotExists(tab.url)) {
+
+                    chrome.tabs.sendMessage(tab.id, {action: 'getDocumentInformations', testcase: testcase}, function(dimension) {
+
+                        docDimension = dimension;
+
+                        takeScreenshot({x:0,y:0},function() {
+
+                            testcase.screenshots.push({
+                                url: tab.url
+                            });
+
+                            chrome.tabs.sendMessage(tab.id, {action: 'scroll', pos: {x:0,y:0}});
+                            chrome.tabs.sendMessage(tab.id, {action: 'init', testcase: testcase});
+                            socket.emit('screenshot', { testcase: testcase, url: tab.url, imageData: screenshot.canvas.toDataURL('image/jpeg',0.1)});
+
+                        });
+
+                    });
+
+                } else {
+
+                    chrome.tabs.sendMessage(tab.id, {action: 'init', testcase: testcase});
+
+                }
+
             }
 
         });
