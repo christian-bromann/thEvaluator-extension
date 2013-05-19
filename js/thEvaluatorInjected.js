@@ -41,7 +41,7 @@ thEvaluatorInjected.prototype.sendClickCoordToExtension = function(event) {
 };
 
 thEvaluatorInjected.prototype.sendMoveCoordToExtension = function(event,fromTimeout) {
-    
+
     this.currentTimeout = new Date().getTime();
     if(!this.testcase || !this.taskStarted || (this.lastTimeout && this.currentTimeout - this.lastTimeout < 100)) return;
     this.lastTimeout = this.currentTimeout;
@@ -262,8 +262,13 @@ thEvaluatorInjected.prototype.reset = function(request) {
         this.widget.remove();
     }
 
-    this.currentTaskNr = 0;
-    this.taskStarted = 0;
+    this.set('currentTaskNr',0);
+    this.set('taskStarted',0);
+
+    // remove event listener from body
+    var old_element = document.body;
+    var new_element = old_element.cloneNode(true);
+    old_element.parentNode.replaceChild(new_element, old_element);
 };
 
 thEvaluatorInjected.prototype.scroll = function(request,sender,sendResponse) {
