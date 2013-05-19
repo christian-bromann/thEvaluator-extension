@@ -12,7 +12,7 @@ var thEvaluatorInjected = function() {
     this.widget        = null;
     this.currentTaskNr = 0;
     this.taskStarted   = 0;
-    this.eventStopper  = 0;
+    this.timeout       = null;
 
 };
 
@@ -40,10 +40,15 @@ thEvaluatorInjected.prototype.sendClickCoordToExtension = function(event) {
     });
 };
 
-thEvaluatorInjected.prototype.sendMoveCoordToExtension = function(event) {
-    this.eventStopper++;
+thEvaluatorInjected.prototype.sendMoveCoordToExtension = function(event,fromTimeout) {
+    
+    this.currentTimeout = new Date().getTime();
+    if(!this.testcase || !this.taskStarted || (this.lastTimeout && this.currentTimeout - this.lastTimeout < 100)) return;
+    this.lastTimeout = this.currentTimeout;
 
-    if(!this.testcase || !this.taskStarted || this.eventStopper % 10 !== 0) return;
+    if(!fromTimeout) {
+        clearTimeout(this.timeout);
+    }
 
     e = event || window.event;
 
@@ -55,6 +60,10 @@ thEvaluatorInjected.prototype.sendMoveCoordToExtension = function(event) {
         url: document.URL,
         _task: this.currentTask._id
     });
+
+    this.timeout = setTimeout(function() {
+        this.sendMoveCoordToExtension(e,true);
+    }.bind(this),110);
 
 };
 
