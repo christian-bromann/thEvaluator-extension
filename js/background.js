@@ -208,6 +208,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
                 // resize browser resolution
                 chrome.windows.update(-2,{left:0,top:0,width:testcase.resolution[0],height:testcase.resolution[1]});
 
+                // capture screen if not already happended earlier
                 if(!screenshotExists(tab.url)) {
 
                     chrome.tabs.sendMessage(tab.id, {action: 'getDocumentInformations', testcase: testcase}, function(dimension) {
@@ -246,6 +247,9 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
                     chrome.tabs.sendMessage(tab.id, {action: 'init', testcase: testcase});
 
                 }
+
+                // save page visit for testrun
+                socket.emit('pagevisit', { id: testrun._id, url: tab.url });
 
             }
 
