@@ -131,12 +131,6 @@ capturePage = function(opt,cb) {
                     quality: 10
                 }, function(data) {
 
-                    if(!screenshot || !screenshot.canvas) {
-                        canvas = document.createElement('canvas');
-                        screenshot.canvas = canvas;
-                        screenshot.ctx = canvas.getContext('2d');
-                    }
-
                     if (data) {
                         var image = new Image();
                         image.src = data;
@@ -220,10 +214,14 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
 
                         docDimension = dimension;
 
-                        if(screenshot.canvas) {
-                            screenshot.canvas.width  = docDimension.width;
-                            screenshot.canvas.height = docDimension.height;
+                        if(!screenshot || !screenshot.canvas) {
+                            canvas = document.createElement('canvas');
+                            screenshot.canvas = canvas;
+                            screenshot.ctx = canvas.getContext('2d');
                         }
+
+                        screenshot.canvas.width  = docDimension.width;
+                        screenshot.canvas.height = docDimension.height;
 
                         takeScreenshot({x:0,y:0},function() {
 
