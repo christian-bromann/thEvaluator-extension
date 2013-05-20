@@ -7,7 +7,8 @@ var socket   = null,
     testcase = null,
     testrun  = null,
     screenshot = {},
-    docDimension = {};
+    docDimension = {},
+    currentTask = 0;
 
 // send mouse position to server via socketIO
 sendClickPosition = function(request) {
@@ -173,6 +174,10 @@ screenshotExists = function(url) {
 
     return false;
 
+},
+
+newTask = function(opt) {
+    currentTask = opt.task;
 };
 
 // register actions
@@ -187,6 +192,8 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
         case 'reset': reset(request);
         break;
         case 'getSessionInfo': sendResponse(testcase);
+        break;
+        case 'newTask': newTask(request);
         break;
         default:
             console.warn('[background.js] no action \'%s\' found!',request.action);
@@ -249,7 +256,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
                 }
 
                 // save page visit for testrun
-                socket.emit('pagevisit', { id: testrun._id, url: tab.url });
+                socket.emit('pagevisit', { id: testrun._id, url: tab.url, task: this.testcase.tasks[currentTask]._id });
 
             }
 

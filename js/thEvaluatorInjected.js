@@ -161,6 +161,9 @@ thEvaluatorInjected.prototype.nextTask = function(isTimeoutVisible) {
     this.set('taskStarted',0);
     this.set('currentTaskNr',++this.currentTaskNr);
 
+    // send next task information to background script
+    chrome.extension.sendMessage({action:'newTask', task: this.currentTaskNr});
+
     this.currentTask = this.testcase.tasks[this.currentTaskNr];
     this.log('go to next task: '+this.currentTask.description);
 
