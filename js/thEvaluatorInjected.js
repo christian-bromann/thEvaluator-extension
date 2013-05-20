@@ -217,7 +217,7 @@ thEvaluatorInjected.prototype.removeCookies = function() {
 
 thEvaluatorInjected.prototype.removeListener = function() {
     // remove event listener from body
-    document.body.removeEventListener('click', this.sendClickCoordToExtension);
+    document.body.removeEventListener('mousedown', this.sendClickCoordToExtension);
     document.body.removeEventListener('mousemove', this.sendMoveCoordToExtension);
 };
 
@@ -239,7 +239,7 @@ thEvaluatorInjected.prototype.init = function(request, sender, sendResponse) {
 
     // register event for clicks
     this.log('register event listener for ' + document.URL);
-    document.body.addEventListener('click', this.sendClickCoordToExtension.bind(this));
+    document.body.addEventListener('mousedown', this.sendClickCoordToExtension.bind(this));
     document.body.addEventListener('mousemove', this.sendMoveCoordToExtension.bind(this));
 
     // register target events

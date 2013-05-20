@@ -256,7 +256,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
                 }
 
                 // save page visit for testrun
-                socket.emit('pagevisit', { id: testrun._id, url: tab.url, task: this.testcase.tasks[currentTask]._id });
+                socket.emit('pagevisit', { id: testrun._id, url: tab.url, task: testcase.tasks[currentTask]._id });
 
             }
 
