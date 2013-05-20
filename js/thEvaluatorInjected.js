@@ -118,8 +118,10 @@ thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible, isReq
 
     if($('.thevaluator').length) return;
 
-    // reset cookies
+    // remove widget
     if(this.widget) this.widget.remove();
+    this.removeCookies();
+    this.removeListener();
 
     var that    = this,
         replace = {
@@ -144,6 +146,9 @@ thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible, isReq
 thEvaluatorInjected.prototype.hitTargetElem = function(e) {
     e.preventDefault();
     e.stopPropagation();
+
+    // send final click coords
+    this.sendClickCoordToExtension(e);
 
     if(this.currentTaskNr + 1 === this.testcase.tasks.length) {
         this.showThanksLayer();
@@ -202,6 +207,17 @@ thEvaluatorInjected.prototype.checkTimeout = function() {
     window.setTimeout(this.checkTimeout.bind(this),1000);
 };
 
+thEvaluatorInjected.prototype.removeCookies = function() {
+    this.set('currentTaskNr',0);
+    this.set('taskStarted',0);
+};
+
+thEvaluatorInjected.prototype.removeListener = function() {
+    // remove event listener from body
+    document.body.removeEventListener('click', this.sendClickCoordToExtension);
+    document.body.removeEventListener('mousemove', this.sendMoveCoordToExtension);
+};
+
 /**
  * ------------------- event functions -------------------------------------
  */
@@ -255,20 +271,15 @@ thEvaluatorInjected.prototype.getDocumentInformations = function(request, sender
 
 thEvaluatorInjected.prototype.reset = function(request) {
 
-    if(request.sender === 'contentscript') return;
+    if(request && request.sender === 'contentscript') return;
 
     $('.thevaluator').fadeOut(function() { this.remove(); });
     if(this.widget) {
         this.widget.remove();
     }
 
-    this.set('currentTaskNr',0);
-    this.set('taskStarted',0);
-
-    // remove event listener from body
-    var old_element = document.body;
-    var new_element = old_element.cloneNode(true);
-    old_element.parentNode.replaceChild(new_element, old_element);
+    this.removeCookies();
+    this.removeListener();
 };
 
 thEvaluatorInjected.prototype.scroll = function(request,sender,sendResponse) {
