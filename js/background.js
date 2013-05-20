@@ -83,7 +83,7 @@ redirect = function() {
         for (var i = 0; i < tabs.length; ++i) {
             tab = tabs[i];
             if (tab.url && sanitize(tab.url) === sanitize(testcase.url)) {
-                chrome.tabs.update(tab.id, {url: tab.url, selected: true});
+                chrome.tabs.update(tab.id, {url: testcase.url, selected: true});
                 return;
             }
         }
