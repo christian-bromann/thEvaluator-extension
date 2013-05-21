@@ -33,6 +33,9 @@ sendMovePosition = function(request) {
 
 initTestrun = function() {
 
+    // reset task nr
+    currentTask = 0;
+
     // get geodata from user
     $.getJSON('http://smart-ip.net/geoip-json', function(data) {
         // init testrun
