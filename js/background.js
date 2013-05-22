@@ -181,6 +181,16 @@ screenshotExists = function(url) {
 
 newTask = function(opt) {
     currentTask = opt.task;
+},
+
+closeAllUnselectedTabs = function(tab,currentURI){
+    chrome.tabs.getAllInWindow(null, function(tabs){
+        for (var i = 0; i < tabs.length; i++) {
+            if(tab.id !== tabs[i].id && currentURI === sanitize(tabs[i].url)) {
+                chrome.tabs.remove(tabs[i].id);
+            }
+        }
+    });
 };
 
 // register actions
@@ -217,6 +227,8 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
             if(testcase && desiredURI === currentURI) {
                 // resize browser resolution
                 chrome.windows.update(-2,{left:0,top:0,width:testcase.resolution[0],height:testcase.resolution[1]});
+
+                closeAllUnselectedTabs(tab,currentURI);
 
                 // capture screen if not already happended earlier
                 if(!screenshotExists(tab.url)) {
