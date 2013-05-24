@@ -278,10 +278,9 @@ thEvaluatorInjected.prototype.init = function(request, sender, sendResponse) {
     // register target events
     this.registerTargetEvent();
 
-    // iframes don't handle testcases - no layers
+    // iframes don't handle testcases or timeouts - no layers
     if(this.isAnIframe()) {
         this.taskStarted = Date.now();
-        this.checkTimeout();
         return;
     }
 
@@ -289,7 +288,7 @@ thEvaluatorInjected.prototype.init = function(request, sender, sendResponse) {
     if(this.taskStarted && this.taskExpired()) {
         this.showThanksLayer(true,true);
     } if(this.currentTaskNr === 0 && !this.taskStarted) {
-        this.showTaskLayer();
+        this.showTaskLayer(false);
     } else if(this.taskStarted && !this.taskExpired()) {
         this.widget = new thEvaluatorWidget(this.currentTaskNr+1,this.testcase.tasks.length,this.currentTask.description);
     }
@@ -358,7 +357,6 @@ thEvaluatorInjected.prototype.finishedTestrun = function(request,sender,sendResp
         return;
     }
 
-    console.log('open thanks layer',window.location.origin);
     this.showThanksLayer();
 
 };
