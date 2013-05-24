@@ -1,5 +1,4 @@
 var thEvaluator = new thEvaluatorInjected();
-
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 
     if(typeof thEvaluator[request.action] === 'function') {

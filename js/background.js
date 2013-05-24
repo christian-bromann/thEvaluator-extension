@@ -3,32 +3,48 @@
  * @description get mouse coords from contentscript, send coords via socket.io to node server
  */
 
-var socket   = null,
-    testcase = null,
-    testrun  = null,
-    screenshot = {},
+var socket       = null,
+    testcase     = null,
+    testrun      = null,
+    currentTab   = null,
+    activeFrame  = null,
+    screenshot   = {},
     docDimension = {},
-    currentTask = 0;
+    currentTask  = 0;
+
+var test = null;
 
 // send mouse position to server via socketIO
 sendClickPosition = function(request) {
 
-    if(!testcase) {
+    if(!testrun) {
         return;
     }
 
-    console.log('got coords ', request);
-    socket.emit('clickPosition', { _testrun: testrun._id, x: request.x, y: request.y, url: request.url, _task: request._task });
+    socket.emit('clickPosition', {
+        _testrun: testrun._id,
+        x: request.x,
+        y: request.y,
+        url: request.url || currentTab.url,
+        _task: request._task
+    });
 },
 
 sendMovePosition = function(request) {
 
-    if(!testcase) {
+    if(!testrun || (request.isIdle && request.url !== activeFrame)) {
         return;
     }
 
-    console.log('got coords ', request);
-    socket.emit('movePosition', { _testrun: testrun._id, x: request.x, y: request.y, url: request.url, _task: request._task });
+    activeFrame = request.url;
+
+    socket.emit('movePosition', {
+        _testrun: testrun._id,
+        x: request.x,
+        y: request.y,
+        url: request.url || currentTab.url,
+        _task: request._task
+    });
 },
 
 initTestrun = function() {
@@ -179,8 +195,21 @@ screenshotExists = function(url) {
 
 },
 
-newTask = function(opt) {
-    currentTask = opt.task;
+newTask = function(request) {
+    currentTask = request.task;
+
+    // send message to update all iframe content scripts
+    chrome.tabs.getSelected(null, function(tab) {
+        request.action = 'updateTask';
+        chrome.tabs.sendMessage(tab.id, request);
+    });
+},
+
+finishedTestrun = function(request) {
+    // send message to update all iframe content scripts
+    chrome.tabs.getSelected(null, function(tab) {
+        chrome.tabs.sendMessage(tab.id, request);
+    });
 },
 
 closeAllUnselectedTabs = function(tab,currentURI){
@@ -208,6 +237,8 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
         break;
         case 'newTask': newTask(request);
         break;
+        case 'finishedTestrun': finishedTestrun(request);
+        break;
         default:
             console.warn('[background.js] no action \'%s\' found!',request.action);
     }
@@ -229,6 +260,8 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
                 chrome.windows.update(-2,{left:0,top:0,width:testcase.resolution[0],height:testcase.resolution[1]});
 
                 closeAllUnselectedTabs(tab,currentURI);
+
+                currentTab = tab;
 
                 // capture screen if not already happended earlier
                 if(!screenshotExists(tab.url)) {

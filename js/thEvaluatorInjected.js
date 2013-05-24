@@ -13,12 +13,13 @@ var thEvaluatorInjected = function() {
     this.currentTaskNr = 0;
     this.taskStarted   = 0;
     this.timeout       = null;
+    this.targetElem    = [];
 
 };
 
 thEvaluatorInjected.prototype.log = function(msg) {
     if(typeof msg === 'string') {
-        console.log('%c[thEvaluator]%c - '+msg, this.logStyleLabel, this.logStyle);
+        console.log('%c[thEvaluator]%c - '+msg, this.logStyleLabel, this.logStyle,document.URL);
     } else {
         console.log('%c[thEvaluator]%c - ', this.logStyleLabel, this.logStyle,msg);
     }
@@ -28,14 +29,14 @@ thEvaluatorInjected.prototype.sendClickCoordToExtension = function(event) {
 
     if(!this.testcase || !this.taskStarted || $(event.target).parents('.thevaluator').length) return;
 
-    e = event || window.event;
+    var e = event || window.event;
 
-    this.log('send click coords for testcase ' + this.testcase.id + ', x = ' + e.pageX + ' y = ' + e.pageY );
+    // this.log('send click coords for testcase ' + this.testcase.id + ', x = ' + e.pageX + ' y = ' + e.pageY );
     chrome.extension.sendMessage({
         action: 'sendClickPosition',
-        x: e.pageX,
-        y: e.pageY,
-        url: document.URL,
+        x: this.isAnIframe() ? e.screenX : e.pageX,
+        y: this.isAnIframe() ? e.screenY : e.pageY,
+        url: this.isAnIframe() ? null : document.URL,
         _task: this.currentTask._id
     });
 };
@@ -52,12 +53,13 @@ thEvaluatorInjected.prototype.sendMoveCoordToExtension = function(event,fromTime
 
     e = event || window.event;
 
-    this.log('send move coords for testcase ' + this.testcase.id + ', x = ' + e.pageX + ' y = ' + e.pageY );
+    // this.log('send move coords for testcase ' + this.testcase.id + ', x = ' + e.pageX + ' y = ' + e.pageY );
     chrome.extension.sendMessage({
         action: 'sendMovePosition',
-        x: e.pageX,
-        y: e.pageY,
-        url: document.URL,
+        x: this.isAnIframe() ? e.screenX : e.pageX,
+        y: this.isAnIframe() ? e.screenY : e.pageY,
+        url: this.isAnIframe() ? null : document.URL,
+        isIdle: fromTimeout,
         _task: this.currentTask._id
     });
 
@@ -89,6 +91,10 @@ thEvaluatorInjected.prototype.loadTemplate = function(name,replace,cb) {
 
 thEvaluatorInjected.prototype.showTaskLayer = function(isTimeoutVisible) {
 
+    if(this.isAnIframe()) {
+        return;
+    }
+
     var that = this,
         replace = {
             testcaseName: this.testcase.name,
@@ -106,7 +112,7 @@ thEvaluatorInjected.prototype.showTaskLayer = function(isTimeoutVisible) {
                 that.widget = new thEvaluatorWidget(that.currentTaskNr+1,that.testcase.tasks.length,that.currentTask.description);
             }
 
-            $('.thevaluator').fadeOut();
+            $('.thevaluator').fadeOut(function() { this.remove(); });
             that.set('taskStarted', Date.now());
             that.checkTimeout();
         });
@@ -116,27 +122,27 @@ thEvaluatorInjected.prototype.showTaskLayer = function(isTimeoutVisible) {
 
 thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible, isRequiredVisible) {
 
-    if($('.thevaluator').length) return;
+    if($('.thevaluator').length || this.isAnIframe()) {
+        return;
+    }
 
     // remove widget
     if(this.widget) this.widget.remove();
     this.removeCookies();
     this.removeListener();
 
-    var that    = this,
-        replace = {
-            timeoutClass: !isTimeoutVisible ? ' hidden' : '',
-            requiredClass: !isRequiredVisible ? 'hidden' : ''
-        };
+    chrome.extension.sendMessage({action:'reset', fromOrigin: window.location.origin, status: isTimeoutVisible && isRequiredVisible ? 2 : 1 });
+    this.set('currentTaskNr',0);
+    this.set('taskStarted',0);
+
+    var replace = {
+        timeoutClass: !isTimeoutVisible ? ' hidden' : '',
+        requiredClass: !isRequiredVisible ? 'hidden' : ''
+    };
 
     this.loadTemplate('thanks',replace,function(template) {
         $('body').append(template);
         $('.thevaluator .close').click(function() {
-
-            chrome.extension.sendMessage({action:'reset',sender:'contentscript',status: isTimeoutVisible && isRequiredVisible ? 2 : 1 });
-            that.set('currentTaskNr',0);
-            that.set('taskStarted',0);
-
             $('.thevaluator').fadeOut(function(){ this.remove(); });
         });
     });
@@ -151,8 +157,10 @@ thEvaluatorInjected.prototype.hitTargetElem = function(e) {
     this.sendClickCoordToExtension(e);
 
     if(this.currentTaskNr + 1 === this.testcase.tasks.length) {
+        chrome.extension.sendMessage({action:'finishedTestrun', fromOrigin: window.location.origin});
         this.showThanksLayer();
     } else {
+        chrome.extension.sendMessage({action:'newTask', task: this.currentTaskNr+1, fromOrigin: window.location.origin});
         this.nextTask();
     }
 };
@@ -161,13 +169,10 @@ thEvaluatorInjected.prototype.nextTask = function(isTimeoutVisible) {
     this.set('taskStarted',0);
     this.set('currentTaskNr',++this.currentTaskNr);
 
-    // send next task information to background script
-    chrome.extension.sendMessage({action:'newTask', task: this.currentTaskNr});
-
     this.currentTask = this.testcase.tasks[this.currentTaskNr];
     this.log('go to next task: '+this.currentTask.description);
 
-    if(!this.widget) {
+    if(!this.widget || this.isAnIframe()) {
         return;
     }
 
@@ -207,6 +212,11 @@ thEvaluatorInjected.prototype.checkTimeout = function() {
         }
     }
 
+    // if no target elem was found in first place, try to find it again
+    if(this.targetElem.length === 0) {
+        this.registerTargetEvent();
+    }
+
     window.setTimeout(this.checkTimeout.bind(this),1000);
 };
 
@@ -219,6 +229,29 @@ thEvaluatorInjected.prototype.removeListener = function() {
     // remove event listener from body
     document.body.removeEventListener('mousedown', this.sendClickCoordToExtension);
     document.body.removeEventListener('mousemove', this.sendMoveCoordToExtension);
+};
+
+thEvaluatorInjected.prototype.isAnIframe = function() {
+    return window.top.location !== window.self.location;
+};
+
+thEvaluatorInjected.prototype.registerTargetEvent = function() {
+
+    var i;
+
+    // clear listeners
+    for(i = 0; i < this.targetElem.length; ++i) {
+        this.targetElem[i].removeEventListener(this.currentTask.targetAction, this.hitTargetElem.bind(this));
+    }
+    this.targetElem = [];
+
+    // register listeners
+    this.targetElem = document.querySelectorAll(this.currentTask.targetElem);
+    for(i = 0; i < this.targetElem.length; ++i) {
+        this.targetElem[i].addEventListener(this.currentTask.targetAction, this.hitTargetElem.bind(this));
+    }
+    this.log('found '+this.targetElem.length+' target elements (' + this.currentTask.targetElem + ')');
+
 };
 
 /**
@@ -238,16 +271,19 @@ thEvaluatorInjected.prototype.init = function(request, sender, sendResponse) {
     this.log('current task ('+(this.currentTaskNr + 1)+'/'+this.testcase.tasks.length+') [status: '+(this.taskStarted?'started':'not started')+']: '+this.currentTask.description);
 
     // register event for clicks
-    this.log('register event listener for ' + document.URL);
-    document.body.addEventListener('mousedown', this.sendClickCoordToExtension.bind(this));
+    this.log('register event listener for frame');
+    document.body.addEventListener(this.isAnIframe() ? 'click' : 'mousedown', this.sendClickCoordToExtension.bind(this));
     document.body.addEventListener('mousemove', this.sendMoveCoordToExtension.bind(this));
 
     // register target events
-    this.targetElem = document.querySelectorAll(this.currentTask.targetElem);
-    for(var i = 0; i < this.targetElem.length; ++i) {
-        this.targetElem[i].addEventListener(this.currentTask.targetAction, this.hitTargetElem.bind(this));
+    this.registerTargetEvent();
+
+    // iframes don't handle testcases - no layers
+    if(this.isAnIframe()) {
+        this.taskStarted = Date.now();
+        this.checkTimeout();
+        return;
     }
-    this.log('found '+this.targetElem.length+' target elements (' + this.currentTask.targetElem + ') on this page');
 
     // show task or widget layer
     if(this.taskStarted && this.taskExpired()) {
@@ -264,29 +300,65 @@ thEvaluatorInjected.prototype.init = function(request, sender, sendResponse) {
 };
 
 thEvaluatorInjected.prototype.getDocumentInformations = function(request, sender, sendResponse) {
-    sendResponse({
-        height: document.height,
-        width: document.width,
+    var dimension = {
+        height: $(document).height(),
+        width: $(document).width(),
         innerHeight: window.innerHeight,
         innerWidth: window.innerWidth
-    });
+    };
+
+    if(sendResponse && !this.isAnIframe()) sendResponse(dimension);
+    return dimension;
 };
 
 thEvaluatorInjected.prototype.reset = function(request) {
 
-    if(request && request.sender === 'contentscript') return;
+    // ignore message if origin is equal
+    if(request && request.fromOrigin === window.location.origin) {
+        return;
+    }
 
     $('.thevaluator').fadeOut(function() { this.remove(); });
     if(this.widget) {
         this.widget.remove();
     }
 
+    this.testcase    = null;
+    this.currentTask = null;
+
     this.removeCookies();
     this.removeListener();
 };
 
 thEvaluatorInjected.prototype.scroll = function(request,sender,sendResponse) {
+
+    if(this.isAnIframe()) {
+        return;
+    }
+
     this.log('scroll to ' + request.pos.x + ', ' + request.pos.y);
     window.scrollTo(request.pos.x,request.pos.y);
     sendResponse({scrollX: window.scrollX, scrollY: window.scrollY});
+};
+
+thEvaluatorInjected.prototype.updateTask = function(request,sender,sendResponse) {
+
+    // ignore message if origin is equal
+    if(request && request.fromOrigin === window.location.origin) {
+        return;
+    }
+
+    this.nextTask(false);
+};
+
+thEvaluatorInjected.prototype.finishedTestrun = function(request,sender,sendResponse) {
+
+    // ignore message if origin is equal
+    if(request && request.fromOrigin === window.location.origin) {
+        return;
+    }
+
+    console.log('open thanks layer',window.location.origin);
+    this.showThanksLayer();
+
 };
