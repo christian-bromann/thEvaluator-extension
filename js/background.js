@@ -52,13 +52,16 @@ initTestrun = function() {
     // reset task nr
     currentTask = 0;
 
-    // get geodata from user
-    $.getJSON('http://smart-ip.net/geoip-json', function(data) {
-        // init testrun
-        socket.emit('init', {_testcase: testcase._id, geoData: data },function(data) {
-            testrun = data;
+    // init testrun
+    socket.emit('init', { _testcase: testcase._id },function(data) {
+        testrun = data;
+
+        // get geodata from user
+        $.getJSON('http://smart-ip.net/geoip-json', function(data) {
+            socket.emit('geoData', {_id: testrun._id, geoData: data });
         });
     });
+
 },
 
 getTestcase = function(request) {
@@ -304,6 +307,9 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
                 }
 
                 // save page visit for testrun
+                if(!testrun || !testcase) {
+                    return;
+                }
                 socket.emit('pagevisit', { id: testrun._id, url: tab.url, task: testcase.tasks[currentTask]._id });
 
             }
