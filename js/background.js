@@ -86,6 +86,17 @@ getTestcase = function(request) {
         initTestrun();
         redirect();
 
+        // set cookies
+        for(var i = 0; i < testcase.cookies.length; ++i) {
+            chrome.cookies.set({
+                url: testcase.url,
+                name: testcase.cookies[i].name,
+                value: testcase.cookies[i].value,
+                domain: '.'+sanitize(testcase.url),
+                path: '/'
+            });
+        }
+
     });
 },
 
