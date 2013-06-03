@@ -13,7 +13,7 @@ var thEvaluatorInjected = function() {
     this.currentTaskNr = 0;
     this.taskStarted   = 0;
     this.timeout       = null;
-    this.targetElem    = [];
+    this.targetEvent   = null;
 
 };
 
@@ -170,6 +170,7 @@ thEvaluatorInjected.prototype.nextTask = function(isTimeoutVisible) {
     this.set('currentTaskNr',++this.currentTaskNr);
 
     this.currentTask = this.testcase.tasks[this.currentTaskNr];
+    this.registerTargetEvent();
     this.log('go to next task: '+this.currentTask.description);
 
     if(!this.widget || this.isAnIframe()) {
@@ -213,7 +214,7 @@ thEvaluatorInjected.prototype.checkTimeout = function() {
     }
 
     // if no target elem was found in first place, try to find it again
-    if(this.targetElem.length === 0) {
+    if(this.targetEvent && this.targetEvent.elem.length === 0) {
         this.registerTargetEvent();
     }
 
@@ -240,17 +241,19 @@ thEvaluatorInjected.prototype.registerTargetEvent = function() {
     var i;
 
     // clear listeners
-    for(i = 0; i < this.targetElem.length; ++i) {
-        this.targetElem[i].removeEventListener(this.currentTask.targetAction, this.hitTargetElem.bind(this));
+    for(i = 0; this.targetEvent && i < this.targetEvent.elem.length; ++i) {
+        $(this.targetEvent.elem[i]).unbind(this.targetEvent.action);
     }
-    this.targetElem = [];
 
     // register listeners
-    this.targetElem = document.querySelectorAll(this.currentTask.targetElem);
-    for(i = 0; i < this.targetElem.length; ++i) {
-        this.targetElem[i].addEventListener(this.currentTask.targetAction, this.hitTargetElem.bind(this));
+    this.targetEvent = {
+        elem: document.querySelectorAll(this.currentTask.targetElem),
+        action: this.currentTask.targetAction
+    };
+    for(i = 0; i < this.targetEvent.elem.length; ++i) {
+        $(this.targetEvent.elem[i]).bind(this.targetEvent.action, this.hitTargetElem.bind(this));
     }
-    this.log('found '+this.targetElem.length+' target elements (' + this.currentTask.targetElem + ')');
+    this.log('found '+this.targetEvent.elem.length+' target elements (' + this.currentTask.targetElem + ')');
 
 };
 
