@@ -1,3 +1,4 @@
+@import "reset";
 @import "components";
 
 .thevaluator {
@@ -22,15 +23,23 @@
             @extend .te_font;
             text-align: left;
             padding: 0 15px 15px;
+            overflow: hidden;
 
             button {
                 @extend .te_button;
-                margin: 0 auto;
+                margin: 20px auto 0;
+                opacity: 1;
             }
             em {
                 color: #006ccc;
                 font-weight: bold;
                 font-style: normal;
+            }
+            b {
+                font-weight: bold;
+            }
+            p {
+                margin: 15px 0;
             }
             .hidden {
                 display: none;
@@ -59,14 +68,20 @@
         @extend .te_header;
         @extend .te_font;
         color: #999999;
-        width: 150px;
-        float: left;
+        width: 100%;
         padding: 7px 0 6px;
+        text-align: center;
     }
 
     p {
         @extend .te_font;
         padding: 0;
         margin: 0;
+        margin: 15px;
+        max-width: 500px;
+    }
+
+    b {
+        font-weight: bold;
     }
 }
