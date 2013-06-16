@@ -155,8 +155,11 @@ thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible, isReq
 };
 
 thEvaluatorInjected.prototype.hitTargetElem = function(e) {
-    e.preventDefault();
-    e.stopPropagation();
+
+    if(!this.currentTask.propagate) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
 
     // send final click coords
     this.sendClickCoordToExtension(e);
