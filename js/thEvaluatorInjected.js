@@ -143,6 +143,11 @@ thEvaluatorInjected.prototype.showThanksLayer = function(isTimeoutVisible, isReq
     this.loadTemplate('thanks',replace,function(template) {
         $('body').append(template);
         $('.thevaluator .close').click(function() {
+            var feedback = $('.thevaluator textarea').val();
+
+            if(feedback !== '') {
+                chrome.extension.sendMessage({action:'feedback', text: feedback });
+            }
             $('.thevaluator').fadeOut(function(){ this.remove(); });
         });
     });

@@ -6,6 +6,7 @@
 var socket       = null,
     testcase     = null,
     testrun      = null,
+    testrunID    = null,
     currentTab   = null,
     activeFrame  = null,
     screenshot   = {},
@@ -55,6 +56,7 @@ initTestrun = function() {
     // init testrun
     socket.emit('init', { _testcase: testcase._id },function(data) {
         testrun = data;
+        testrunID = data._id;
 
         // get geodata from user
         $.getJSON('http://smart-ip.net/geoip-json', function(data) {
@@ -236,6 +238,18 @@ closeAllUnselectedTabs = function(tab,currentURI){
     });
 };
 
+sendFeedback = function(request) {
+
+    if(!testrunID) {
+        return;
+    }
+
+    socket.emit('feedback', {
+        id: testrunID,
+        text: request.text
+    });
+};
+
 // register actions
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
     switch(request.action) {
@@ -252,6 +266,8 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
         case 'newTask': newTask(request);
         break;
         case 'finishedTestrun': finishedTestrun(request);
+        break;
+        case 'feedback': sendFeedback(request);
         break;
         default:
             console.warn('[background.js] no action \'%s\' found!',request.action);
