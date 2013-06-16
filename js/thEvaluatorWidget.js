@@ -22,6 +22,10 @@ thEvaluatorWidget.prototype.show = function(tpl) {
 
             that.el = $('.thevaluator_widget');
             that.el.fadeIn();
+            that.el.hover(function() {
+                var currentHeight = parseInt($(this).css('bottom'),10);
+                $(this).css('bottom',(currentHeight > 20 ? 20 : ($(this).height()+20))+'px');
+            },function(){});
         }
     });
 
