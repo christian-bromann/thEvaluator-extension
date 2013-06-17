@@ -300,7 +300,7 @@ thEvaluatorInjected.prototype.init = function(request, sender, sendResponse) {
         this.showThanksLayer(true,true);
     } if(this.currentTaskNr === 0 && !this.taskStarted) {
         this.showTaskLayer(false);
-    } else if(this.taskStarted && !this.taskExpired()) {
+    } else if(this.taskStarted && !this.taskExpired() && !this.widget) {
         this.widget = new thEvaluatorWidget(this.currentTaskNr+1,this.testcase.tasks.length,this.currentTask.description);
     }
 
