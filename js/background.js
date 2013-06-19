@@ -106,7 +106,7 @@ getTestcase = function(request) {
 startSocketConnection = function(request) {
     socket = window.io.connect('http://localhost:9001');
 
-    socket.on('connection', function () {
+    socket.on('connect', function () {
         getTestcase(request);
     });
 },
