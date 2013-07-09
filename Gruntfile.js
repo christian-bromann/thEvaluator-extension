@@ -154,17 +154,17 @@ module.exports = function (grunt) {
                     }
                 ]
             },
-            // backgroundScript: { //specify a target with any name
-            //     src: ['<%= extension.tmp %>/dist/background.min.js'],
-            //     actions: [
-            //         {
-            //             name: 'replace io url',
-            //             search: 'http://localhost:9001',
-            //             replace: socketURI,
-            //             flags: 'g'
-            //         }
-            //     ]
-            // }
+            backgroundScript: {
+                src: ['<%= extension.tmp %>/dist/background.min.js'],
+                actions: [
+                    {
+                        name: 'replace io url',
+                        search: 'http://localhost:9001',
+                        replace: socketURI,
+                        flags: 'g'
+                    }
+                ]
+            }
         },
         crx: {
             thevaluatorExtension: {
