@@ -34,5 +34,6 @@
         "templates/thanks.tpl",
         "templates/widget.tpl"
     ],
-    "content_security_policy": "script-src 'self' http://localhost; object-src 'self'"
+    "content_security_policy": "script-src 'self' http://localhost; object-src 'self'",
+    "minimum_chrome_version": "22.0.1229"
 }
