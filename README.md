@@ -13,7 +13,7 @@ $ npm install grunt -g    // if not already installed
 $ npm install
 ```
 
-Then, build the `.crx` file using Grunt. You'll find the generated file in a `builds` directory.
+Define path to API in the package.json at socketURI. Then, build the `.crx` file using Grunt. You'll find the generated file in a `builds` directory.
 
 ```
 $ grunt build

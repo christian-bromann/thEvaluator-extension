@@ -28,9 +28,6 @@ module.exports = function (grunt) {
         style: 'compressed'
     }
 
-    // WebSocket URL to server
-    var socketURI = 'http://qcentral.org:9001';
-
     grunt.initConfig({
         pkg: pkg,
         extension: extensionConfig,
@@ -160,7 +157,7 @@ module.exports = function (grunt) {
                     {
                         name: 'replace io url',
                         search: 'http://localhost:9001',
-                        replace: socketURI,
+                        replace: pkg.socketURI,
                         flags: 'g'
                     }
                 ]
@@ -170,7 +167,7 @@ module.exports = function (grunt) {
             thevaluatorExtension: {
                 'src': '<%= extension.tmp %>/',
                 'dest': '<%= extension.builds %>/thevaluator-<%= grunt.template.today("yyyymmddHHMMss") %>.crx',
-                'exclude': [ '.git', '.svn' ],
+                'exclude': [ '.git' ],
                 'privateKey': 'ssh/privKey.pem',
                 'options': {
                     'maxBuffer': 3000 * 1024 //build extension with a weight up to 3MB

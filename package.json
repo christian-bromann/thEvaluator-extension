@@ -25,5 +25,6 @@
     "grunt-regex-replace": "~0.2.5",
     "grunt-crx": "~0.2.3",
     "matchdep": "~0.1.1"
-  }
+  },
+  "socketURI": "http://qcentral.org:9001"
 }
